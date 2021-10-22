@@ -1053,6 +1053,40 @@ class LoggingMixIn:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="fuse.time_of_timespec"><code class="name flex">
+<span>def <span class="ident">time_of_timespec</span></span>(<span>ts)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def time_of_timespec(ts):
+    return ts.tv_sec + ts.tv_nsec / 10 ** 9</code></pre>
+</details>
+</dd>
+<dt id="fuse.set_st_attrs"><code class="name flex">
+<span>def <span class="ident">set_st_attrs</span></span>(<span>st, attrs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_st_attrs(st, attrs):
+    for key, val in attrs.items():
+        if key in (&#34;st_atime&#34;, &#34;st_mtime&#34;, &#34;st_ctime&#34;, &#34;st_birthtime&#34;):
+            timespec = getattr(st, key + &#34;spec&#34;, None)
+            if timespec is None:
+                continue
+            timespec.tv_sec = int(val)
+            timespec.tv_nsec = int((val - timespec.tv_sec) * 10 ** 9)
+        elif hasattr(st, key):
+            setattr(st, key, val)</code></pre>
+</details>
+</dd>
 <dt id="fuse.fuse_get_context"><code class="name flex">
 <span>def <span class="ident">fuse_get_context</span></span>(<span>)</span>
 </code></dt>
@@ -1090,45 +1124,627 @@ class LoggingMixIn:
     return link, cmdline, uid, gid, pid</code></pre>
 </details>
 </dd>
-<dt id="fuse.set_st_attrs"><code class="name flex">
-<span>def <span class="ident">set_st_attrs</span></span>(<span>st, attrs)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def set_st_attrs(st, attrs):
-    for key, val in attrs.items():
-        if key in (&#34;st_atime&#34;, &#34;st_mtime&#34;, &#34;st_ctime&#34;, &#34;st_birthtime&#34;):
-            timespec = getattr(st, key + &#34;spec&#34;, None)
-            if timespec is None:
-                continue
-            timespec.tv_sec = int(val)
-            timespec.tv_nsec = int((val - timespec.tv_sec) * 10 ** 9)
-        elif hasattr(st, key):
-            setattr(st, key, val)</code></pre>
-</details>
-</dd>
-<dt id="fuse.time_of_timespec"><code class="name flex">
-<span>def <span class="ident">time_of_timespec</span></span>(<span>ts)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def time_of_timespec(ts):
-    return ts.tv_sec + ts.tv_nsec / 10 ** 9</code></pre>
-</details>
-</dd>
 </dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="fuse.c_timespec"><code class="flex name class">
+<span>class <span class="ident">c_timespec</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Structure base class</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class c_timespec(Structure):
+    _fields_ = [(&#34;tv_sec&#34;, c_long), (&#34;tv_nsec&#34;, c_long)]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>_ctypes.Structure</li>
+<li>_ctypes._CData</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="fuse.c_timespec.tv_sec"><code class="name">var <span class="ident">tv_sec</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_timespec.tv_nsec"><code class="name">var <span class="ident">tv_nsec</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="fuse.c_utimbuf"><code class="flex name class">
+<span>class <span class="ident">c_utimbuf</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Structure base class</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class c_utimbuf(Structure):
+    _fields_ = [(&#34;actime&#34;, c_timespec), (&#34;modtime&#34;, c_timespec)]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>_ctypes.Structure</li>
+<li>_ctypes._CData</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="fuse.c_utimbuf.actime"><code class="name">var <span class="ident">actime</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_utimbuf.modtime"><code class="name">var <span class="ident">modtime</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="fuse.c_stat"><code class="flex name class">
+<span>class <span class="ident">c_stat</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Structure base class</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class c_stat(Structure):
+    pass  # Platform dependent</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>_ctypes.Structure</li>
+<li>_ctypes._CData</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="fuse.c_stat.st_dev"><code class="name">var <span class="ident">st_dev</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_stat.st_ino"><code class="name">var <span class="ident">st_ino</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_stat.st_nlink"><code class="name">var <span class="ident">st_nlink</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_stat.st_mode"><code class="name">var <span class="ident">st_mode</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_stat.st_uid"><code class="name">var <span class="ident">st_uid</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_stat.st_gid"><code class="name">var <span class="ident">st_gid</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_stat.st_rdev"><code class="name">var <span class="ident">st_rdev</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_stat.st_size"><code class="name">var <span class="ident">st_size</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_stat.st_blksize"><code class="name">var <span class="ident">st_blksize</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_stat.st_blocks"><code class="name">var <span class="ident">st_blocks</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_stat.st_atimespec"><code class="name">var <span class="ident">st_atimespec</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_stat.st_mtimespec"><code class="name">var <span class="ident">st_mtimespec</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_stat.st_ctimespec"><code class="name">var <span class="ident">st_ctimespec</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="fuse.c_statvfs"><code class="flex name class">
+<span>class <span class="ident">c_statvfs</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Structure base class</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class c_statvfs(Structure):
+    _fields_ = [
+        (&#34;f_bsize&#34;, c_ulong),
+        (&#34;f_frsize&#34;, c_ulong),
+        (&#34;f_blocks&#34;, c_fsblkcnt_t),
+        (&#34;f_bfree&#34;, c_fsblkcnt_t),
+        (&#34;f_bavail&#34;, c_fsblkcnt_t),
+        (&#34;f_files&#34;, c_fsfilcnt_t),
+        (&#34;f_ffree&#34;, c_fsfilcnt_t),
+        (&#34;f_favail&#34;, c_fsfilcnt_t),
+        (&#34;f_fsid&#34;, c_ulong),
+        # (&#39;unused&#39;, c_int),
+        (&#34;f_flag&#34;, c_ulong),
+        (&#34;f_namemax&#34;, c_ulong),
+    ]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>_ctypes.Structure</li>
+<li>_ctypes._CData</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="fuse.c_statvfs.f_bsize"><code class="name">var <span class="ident">f_bsize</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_statvfs.f_frsize"><code class="name">var <span class="ident">f_frsize</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_statvfs.f_blocks"><code class="name">var <span class="ident">f_blocks</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_statvfs.f_bfree"><code class="name">var <span class="ident">f_bfree</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_statvfs.f_bavail"><code class="name">var <span class="ident">f_bavail</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_statvfs.f_files"><code class="name">var <span class="ident">f_files</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_statvfs.f_ffree"><code class="name">var <span class="ident">f_ffree</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_statvfs.f_favail"><code class="name">var <span class="ident">f_favail</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_statvfs.f_fsid"><code class="name">var <span class="ident">f_fsid</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_statvfs.f_flag"><code class="name">var <span class="ident">f_flag</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.c_statvfs.f_namemax"><code class="name">var <span class="ident">f_namemax</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="fuse.fuse_file_info"><code class="flex name class">
+<span>class <span class="ident">fuse_file_info</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Structure base class</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class fuse_file_info(Structure):
+    _fields_ = [
+        (&#34;flags&#34;, c_int),
+        (&#34;fh_old&#34;, c_ulong),
+        (&#34;writepage&#34;, c_int),
+        (&#34;direct_io&#34;, c_uint, 1),
+        (&#34;keep_cache&#34;, c_uint, 1),
+        (&#34;flush&#34;, c_uint, 1),
+        (&#34;padding&#34;, c_uint, 29),
+        (&#34;fh&#34;, c_uint64),
+        (&#34;lock_owner&#34;, c_uint64),
+    ]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>_ctypes.Structure</li>
+<li>_ctypes._CData</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="fuse.fuse_file_info.flags"><code class="name">var <span class="ident">flags</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_file_info.fh_old"><code class="name">var <span class="ident">fh_old</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_file_info.writepage"><code class="name">var <span class="ident">writepage</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_file_info.direct_io"><code class="name">var <span class="ident">direct_io</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_file_info.keep_cache"><code class="name">var <span class="ident">keep_cache</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_file_info.flush"><code class="name">var <span class="ident">flush</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_file_info.padding"><code class="name">var <span class="ident">padding</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_file_info.fh"><code class="name">var <span class="ident">fh</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_file_info.lock_owner"><code class="name">var <span class="ident">lock_owner</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="fuse.fuse_context"><code class="flex name class">
+<span>class <span class="ident">fuse_context</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Structure base class</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class fuse_context(Structure):
+    _fields_ = [
+        (&#34;fuse&#34;, c_voidp),
+        (&#34;uid&#34;, c_uid_t),
+        (&#34;gid&#34;, c_gid_t),
+        (&#34;pid&#34;, c_pid_t),
+        (&#34;private_data&#34;, c_voidp),
+    ]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>_ctypes.Structure</li>
+<li>_ctypes._CData</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="fuse.fuse_context.fuse"><code class="name">var <span class="ident">fuse</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_context.uid"><code class="name">var <span class="ident">uid</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_context.gid"><code class="name">var <span class="ident">gid</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_context.pid"><code class="name">var <span class="ident">pid</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_context.private_data"><code class="name">var <span class="ident">private_data</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="fuse.fuse_operations"><code class="flex name class">
+<span>class <span class="ident">fuse_operations</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Structure base class</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class fuse_operations(Structure):
+    _fields_ = [
+        (&#34;getattr&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(c_stat))),
+        (&#34;readlink&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(c_byte), c_size_t)),
+        (&#34;getdir&#34;, c_voidp),  # Deprecated, use readdir
+        (&#34;mknod&#34;, CFUNCTYPE(c_int, c_char_p, c_mode_t, c_dev_t)),
+        (&#34;mkdir&#34;, CFUNCTYPE(c_int, c_char_p, c_mode_t)),
+        (&#34;unlink&#34;, CFUNCTYPE(c_int, c_char_p)),
+        (&#34;rmdir&#34;, CFUNCTYPE(c_int, c_char_p)),
+        (&#34;symlink&#34;, CFUNCTYPE(c_int, c_char_p, c_char_p)),
+        (&#34;rename&#34;, CFUNCTYPE(c_int, c_char_p, c_char_p)),
+        (&#34;link&#34;, CFUNCTYPE(c_int, c_char_p, c_char_p)),
+        (&#34;chmod&#34;, CFUNCTYPE(c_int, c_char_p, c_mode_t)),
+        (&#34;chown&#34;, CFUNCTYPE(c_int, c_char_p, c_uid_t, c_gid_t)),
+        (&#34;truncate&#34;, CFUNCTYPE(c_int, c_char_p, c_off_t)),
+        (&#34;utime&#34;, c_voidp),  # Deprecated, use utimens
+        (&#34;open&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(fuse_file_info))),
+        (
+            &#34;read&#34;,
+            CFUNCTYPE(
+                c_int,
+                c_char_p,
+                POINTER(c_byte),
+                c_size_t,
+                c_off_t,
+                POINTER(fuse_file_info),
+            ),
+        ),
+        (
+            &#34;write&#34;,
+            CFUNCTYPE(
+                c_int,
+                c_char_p,
+                POINTER(c_byte),
+                c_size_t,
+                c_off_t,
+                POINTER(fuse_file_info),
+            ),
+        ),
+        (&#34;statfs&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(c_statvfs))),
+        (&#34;flush&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(fuse_file_info))),
+        (&#34;release&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(fuse_file_info))),
+        (&#34;fsync&#34;, CFUNCTYPE(c_int, c_char_p, c_int, POINTER(fuse_file_info))),
+        (&#34;setxattr&#34;, setxattr_t),
+        (&#34;getxattr&#34;, getxattr_t),
+        (&#34;listxattr&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(c_byte), c_size_t)),
+        (&#34;removexattr&#34;, CFUNCTYPE(c_int, c_char_p, c_char_p)),
+        (&#34;opendir&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(fuse_file_info))),
+        (
+            &#34;readdir&#34;,
+            CFUNCTYPE(
+                c_int,
+                c_char_p,
+                c_voidp,
+                CFUNCTYPE(c_int, c_voidp, c_char_p, POINTER(c_stat), c_off_t),
+                c_off_t,
+                POINTER(fuse_file_info),
+            ),
+        ),
+        (&#34;releasedir&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(fuse_file_info))),
+        (&#34;fsyncdir&#34;, CFUNCTYPE(c_int, c_char_p, c_int, POINTER(fuse_file_info))),
+        (&#34;init&#34;, CFUNCTYPE(c_voidp, c_voidp)),
+        (&#34;destroy&#34;, CFUNCTYPE(c_voidp, c_voidp)),
+        (&#34;access&#34;, CFUNCTYPE(c_int, c_char_p, c_int)),
+        (&#34;create&#34;, CFUNCTYPE(c_int, c_char_p, c_mode_t, POINTER(fuse_file_info))),
+        (&#34;ftruncate&#34;, CFUNCTYPE(c_int, c_char_p, c_off_t, POINTER(fuse_file_info))),
+        (
+            &#34;fgetattr&#34;,
+            CFUNCTYPE(c_int, c_char_p, POINTER(c_stat), POINTER(fuse_file_info)),
+        ),
+        (&#34;lock&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(fuse_file_info), c_int, c_voidp)),
+        (&#34;utimens&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(c_utimbuf))),
+        (&#34;bmap&#34;, CFUNCTYPE(c_int, c_char_p, c_size_t, POINTER(c_ulonglong))),
+        (&#34;flag_nullpath_ok&#34;, c_uint, 1),
+        (&#34;flag_nopath&#34;, c_uint, 1),
+        (&#34;flag_utime_omit_ok&#34;, c_uint, 1),
+        (&#34;flag_reserved&#34;, c_uint, 29),
+    ]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>_ctypes.Structure</li>
+<li>_ctypes._CData</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="fuse.fuse_operations.getattr"><code class="name">var <span class="ident">getattr</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.readlink"><code class="name">var <span class="ident">readlink</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.getdir"><code class="name">var <span class="ident">getdir</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.mknod"><code class="name">var <span class="ident">mknod</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.mkdir"><code class="name">var <span class="ident">mkdir</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.unlink"><code class="name">var <span class="ident">unlink</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.rmdir"><code class="name">var <span class="ident">rmdir</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.symlink"><code class="name">var <span class="ident">symlink</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.rename"><code class="name">var <span class="ident">rename</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.link"><code class="name">var <span class="ident">link</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.chmod"><code class="name">var <span class="ident">chmod</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.chown"><code class="name">var <span class="ident">chown</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.truncate"><code class="name">var <span class="ident">truncate</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.utime"><code class="name">var <span class="ident">utime</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.open"><code class="name">var <span class="ident">open</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.read"><code class="name">var <span class="ident">read</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.write"><code class="name">var <span class="ident">write</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.statfs"><code class="name">var <span class="ident">statfs</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.flush"><code class="name">var <span class="ident">flush</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.release"><code class="name">var <span class="ident">release</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.fsync"><code class="name">var <span class="ident">fsync</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.setxattr"><code class="name">var <span class="ident">setxattr</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.getxattr"><code class="name">var <span class="ident">getxattr</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.listxattr"><code class="name">var <span class="ident">listxattr</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.removexattr"><code class="name">var <span class="ident">removexattr</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.opendir"><code class="name">var <span class="ident">opendir</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.readdir"><code class="name">var <span class="ident">readdir</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.releasedir"><code class="name">var <span class="ident">releasedir</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.fsyncdir"><code class="name">var <span class="ident">fsyncdir</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.init"><code class="name">var <span class="ident">init</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.destroy"><code class="name">var <span class="ident">destroy</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.access"><code class="name">var <span class="ident">access</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.create"><code class="name">var <span class="ident">create</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.ftruncate"><code class="name">var <span class="ident">ftruncate</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.fgetattr"><code class="name">var <span class="ident">fgetattr</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.lock"><code class="name">var <span class="ident">lock</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.utimens"><code class="name">var <span class="ident">utimens</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.bmap"><code class="name">var <span class="ident">bmap</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.flag_nullpath_ok"><code class="name">var <span class="ident">flag_nullpath_ok</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.flag_nopath"><code class="name">var <span class="ident">flag_nopath</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.flag_utime_omit_ok"><code class="name">var <span class="ident">flag_utime_omit_ok</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+<dt id="fuse.fuse_operations.flag_reserved"><code class="name">var <span class="ident">flag_reserved</span></code></dt>
+<dd>
+<div class="desc"><p>Structure/Union member</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="fuse.FuseOSError"><code class="flex name class">
+<span>class <span class="ident">FuseOSError</span></span>
+<span>(</span><span>errno)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for I/O related errors.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FuseOSError(OSError):
+    def __init__(self, errno):
+        super(FuseOSError, self).__init__(errno, os.strerror(errno))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.OSError</li>
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
 <dt id="fuse.FUSE"><code class="flex name class">
 <span>class <span class="ident">FUSE</span></span>
 <span>(</span><span>operations, mountpoint, raw_fi=False, encoding='utf-8', **kwargs)</span>
@@ -1546,8 +2162,8 @@ class as is to Operations, instead of just the fh field.</p>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="fuse.FUSE.access"><code class="name flex">
-<span>def <span class="ident">access</span></span>(<span>self, path, amode)</span>
+<dt id="fuse.FUSE.getattr"><code class="name flex">
+<span>def <span class="ident">getattr</span></span>(<span>self, path, buf)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1555,12 +2171,12 @@ class as is to Operations, instead of just the fh field.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def access(self, path, amode):
-    return self.operations(&#34;access&#34;, path.decode(self.encoding), amode)</code></pre>
+<pre><code class="python">def getattr(self, path, buf):
+    return self.fgetattr(path, buf, None)</code></pre>
 </details>
 </dd>
-<dt id="fuse.FUSE.bmap"><code class="name flex">
-<span>def <span class="ident">bmap</span></span>(<span>self, path, blocksize, idx)</span>
+<dt id="fuse.FUSE.readlink"><code class="name flex">
+<span>def <span class="ident">readlink</span></span>(<span>self, path, buf, bufsize)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1568,8 +2184,117 @@ class as is to Operations, instead of just the fh field.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def bmap(self, path, blocksize, idx):
-    return self.operations(&#34;bmap&#34;, path.decode(self.encoding), blocksize, idx)</code></pre>
+<pre><code class="python">def readlink(self, path, buf, bufsize):
+    ret = self.operations(&#34;readlink&#34;, path.decode(self.encoding)).encode(
+        self.encoding
+    )
+
+    # copies a string into the given buffer
+    # (null terminated and truncated if necessary)
+    data = create_string_buffer(ret[: bufsize - 1])
+    memmove(buf, data, len(data))
+    return 0</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.mknod"><code class="name flex">
+<span>def <span class="ident">mknod</span></span>(<span>self, path, mode, dev)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mknod(self, path, mode, dev):
+    return self.operations(&#34;mknod&#34;, path.decode(self.encoding), mode, dev)</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.mkdir"><code class="name flex">
+<span>def <span class="ident">mkdir</span></span>(<span>self, path, mode)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mkdir(self, path, mode):
+    return self.operations(&#34;mkdir&#34;, path.decode(self.encoding), mode)</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.unlink"><code class="name flex">
+<span>def <span class="ident">unlink</span></span>(<span>self, path)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def unlink(self, path):
+    return self.operations(&#34;unlink&#34;, path.decode(self.encoding))</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.rmdir"><code class="name flex">
+<span>def <span class="ident">rmdir</span></span>(<span>self, path)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rmdir(self, path):
+    return self.operations(&#34;rmdir&#34;, path.decode(self.encoding))</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.symlink"><code class="name flex">
+<span>def <span class="ident">symlink</span></span>(<span>self, source, target)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>creates a symlink <code>target -&gt; source</code> (e.g. ln -s source target)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def symlink(self, source, target):
+    &#34;creates a symlink `target -&gt; source` (e.g. ln -s source target)&#34;
+
+    return self.operations(
+        &#34;symlink&#34;, target.decode(self.encoding), source.decode(self.encoding)
+    )</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.rename"><code class="name flex">
+<span>def <span class="ident">rename</span></span>(<span>self, old, new)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rename(self, old, new):
+    return self.operations(
+        &#34;rename&#34;, old.decode(self.encoding), new.decode(self.encoding)
+    )</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.link"><code class="name flex">
+<span>def <span class="ident">link</span></span>(<span>self, source, target)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>creates a hard link <code>target -&gt; source</code> (e.g. ln source target)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def link(self, source, target):
+    &#34;creates a hard link `target -&gt; source` (e.g. ln source target)&#34;
+
+    return self.operations(
+        &#34;link&#34;, target.decode(self.encoding), source.decode(self.encoding)
+    )</code></pre>
 </details>
 </dd>
 <dt id="fuse.FUSE.chmod"><code class="name flex">
@@ -1604,8 +2329,8 @@ class as is to Operations, instead of just the fh field.</p>
     return self.operations(&#34;chown&#34;, path.decode(self.encoding), uid, gid)</code></pre>
 </details>
 </dd>
-<dt id="fuse.FUSE.create"><code class="name flex">
-<span>def <span class="ident">create</span></span>(<span>self, path, mode, fip)</span>
+<dt id="fuse.FUSE.truncate"><code class="name flex">
+<span>def <span class="ident">truncate</span></span>(<span>self, path, length)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1613,269 +2338,8 @@ class as is to Operations, instead of just the fh field.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def create(self, path, mode, fip):
-    fi = fip.contents
-    path = path.decode(self.encoding)
-
-    if self.raw_fi:
-        return self.operations(&#34;create&#34;, path, mode, fi)
-    else:
-        fi.fh = self.operations(&#34;create&#34;, path, mode)
-        return 0</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.destroy"><code class="name flex">
-<span>def <span class="ident">destroy</span></span>(<span>self, private_data)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def destroy(self, private_data):
-    return self.operations(&#34;destroy&#34;, &#34;/&#34;)</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.fgetattr"><code class="name flex">
-<span>def <span class="ident">fgetattr</span></span>(<span>self, path, buf, fip)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def fgetattr(self, path, buf, fip):
-    memset(buf, 0, sizeof(c_stat))
-
-    st = buf.contents
-    if not fip:
-        fh = fip
-    elif self.raw_fi:
-        fh = fip.contents
-    else:
-        fh = fip.contents.fh
-
-    attrs = self.operations(&#34;getattr&#34;, self._decode_optional_path(path), fh)
-    set_st_attrs(st, attrs)
-    return 0</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.flush"><code class="name flex">
-<span>def <span class="ident">flush</span></span>(<span>self, path, fip)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def flush(self, path, fip):
-    if self.raw_fi:
-        fh = fip.contents
-    else:
-        fh = fip.contents.fh
-
-    return self.operations(&#34;flush&#34;, self._decode_optional_path(path), fh)</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.fsync"><code class="name flex">
-<span>def <span class="ident">fsync</span></span>(<span>self, path, datasync, fip)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def fsync(self, path, datasync, fip):
-    if self.raw_fi:
-        fh = fip.contents
-    else:
-        fh = fip.contents.fh
-
-    return self.operations(&#34;fsync&#34;, self._decode_optional_path(path), datasync, fh)</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.fsyncdir"><code class="name flex">
-<span>def <span class="ident">fsyncdir</span></span>(<span>self, path, datasync, fip)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def fsyncdir(self, path, datasync, fip):
-    # Ignore raw_fi
-    return self.operations(
-        &#34;fsyncdir&#34;, self._decode_optional_path(path), datasync, fip.contents.fh
-    )</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.ftruncate"><code class="name flex">
-<span>def <span class="ident">ftruncate</span></span>(<span>self, path, length, fip)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def ftruncate(self, path, length, fip):
-    if self.raw_fi:
-        fh = fip.contents
-    else:
-        fh = fip.contents.fh
-
-    return self.operations(&#34;truncate&#34;, self._decode_optional_path(path), length, fh)</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.getattr"><code class="name flex">
-<span>def <span class="ident">getattr</span></span>(<span>self, path, buf)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def getattr(self, path, buf):
-    return self.fgetattr(path, buf, None)</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.getxattr"><code class="name flex">
-<span>def <span class="ident">getxattr</span></span>(<span>self, path, name, value, size, *args)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def getxattr(self, path, name, value, size, *args):
-    ret = self.operations(
-        &#34;getxattr&#34;, path.decode(self.encoding), name.decode(self.encoding), *args
-    )
-
-    retsize = len(ret)
-    # allow size queries
-    if not value:
-        return retsize
-
-    # do not truncate
-    if retsize &gt; size:
-        return -ERANGE
-
-    buf = create_string_buffer(ret, retsize)  # Does not add trailing 0
-    memmove(value, buf, retsize)
-
-    return retsize</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.init"><code class="name flex">
-<span>def <span class="ident">init</span></span>(<span>self, conn)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def init(self, conn):
-    return self.operations(&#34;init&#34;, &#34;/&#34;)</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.link"><code class="name flex">
-<span>def <span class="ident">link</span></span>(<span>self, source, target)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>creates a hard link <code>target -&gt; source</code> (e.g. ln source target)</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def link(self, source, target):
-    &#34;creates a hard link `target -&gt; source` (e.g. ln source target)&#34;
-
-    return self.operations(
-        &#34;link&#34;, target.decode(self.encoding), source.decode(self.encoding)
-    )</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.listxattr"><code class="name flex">
-<span>def <span class="ident">listxattr</span></span>(<span>self, path, namebuf, size)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def listxattr(self, path, namebuf, size):
-    attrs = self.operations(&#34;listxattr&#34;, path.decode(self.encoding)) or &#34;&#34;
-    ret = &#34;\x00&#34;.join(attrs).encode(self.encoding)
-    if len(ret) &gt; 0:
-        ret += &#34;\x00&#34;.encode(self.encoding)
-
-    retsize = len(ret)
-    # allow size queries
-    if not namebuf:
-        return retsize
-
-    # do not truncate
-    if retsize &gt; size:
-        return -ERANGE
-
-    buf = create_string_buffer(ret, retsize)
-    memmove(namebuf, buf, retsize)
-
-    return retsize</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.lock"><code class="name flex">
-<span>def <span class="ident">lock</span></span>(<span>self, path, fip, cmd, lock)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def lock(self, path, fip, cmd, lock):
-    if self.raw_fi:
-        fh = fip.contents
-    else:
-        fh = fip.contents.fh
-
-    return self.operations(&#34;lock&#34;, self._decode_optional_path(path), fh, cmd, lock)</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.mkdir"><code class="name flex">
-<span>def <span class="ident">mkdir</span></span>(<span>self, path, mode)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def mkdir(self, path, mode):
-    return self.operations(&#34;mkdir&#34;, path.decode(self.encoding), mode)</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.mknod"><code class="name flex">
-<span>def <span class="ident">mknod</span></span>(<span>self, path, mode, dev)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def mknod(self, path, mode, dev):
-    return self.operations(&#34;mknod&#34;, path.decode(self.encoding), mode, dev)</code></pre>
+<pre><code class="python">def truncate(self, path, length):
+    return self.operations(&#34;truncate&#34;, path.decode(self.encoding), length)</code></pre>
 </details>
 </dd>
 <dt id="fuse.FUSE.open"><code class="name flex">
@@ -1895,22 +2359,6 @@ class as is to Operations, instead of just the fh field.</p>
         fi.fh = self.operations(&#34;open&#34;, path.decode(self.encoding), fi.flags)
 
         return 0</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.opendir"><code class="name flex">
-<span>def <span class="ident">opendir</span></span>(<span>self, path, fip)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def opendir(self, path, fip):
-    # Ignore raw_fi
-    fip.contents.fh = self.operations(&#34;opendir&#34;, path.decode(self.encoding))
-
-    return 0</code></pre>
 </details>
 </dd>
 <dt id="fuse.FUSE.read"><code class="name flex">
@@ -1946,6 +2394,211 @@ class as is to Operations, instead of just the fh field.</p>
     return retsize</code></pre>
 </details>
 </dd>
+<dt id="fuse.FUSE.write"><code class="name flex">
+<span>def <span class="ident">write</span></span>(<span>self, path, buf, size, offset, fip)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write(self, path, buf, size, offset, fip):
+    data = string_at(buf, size)
+
+    if self.raw_fi:
+        fh = fip.contents
+    else:
+        fh = fip.contents.fh
+
+    return self.operations(
+        &#34;write&#34;, self._decode_optional_path(path), data, offset, fh
+    )</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.statfs"><code class="name flex">
+<span>def <span class="ident">statfs</span></span>(<span>self, path, buf)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def statfs(self, path, buf):
+    stv = buf.contents
+    attrs = self.operations(&#34;statfs&#34;, path.decode(self.encoding))
+    for key, val in attrs.items():
+        if hasattr(stv, key):
+            setattr(stv, key, val)
+
+    return 0</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.flush"><code class="name flex">
+<span>def <span class="ident">flush</span></span>(<span>self, path, fip)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def flush(self, path, fip):
+    if self.raw_fi:
+        fh = fip.contents
+    else:
+        fh = fip.contents.fh
+
+    return self.operations(&#34;flush&#34;, self._decode_optional_path(path), fh)</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.release"><code class="name flex">
+<span>def <span class="ident">release</span></span>(<span>self, path, fip)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def release(self, path, fip):
+    if self.raw_fi:
+        fh = fip.contents
+    else:
+        fh = fip.contents.fh
+
+    return self.operations(&#34;release&#34;, self._decode_optional_path(path), fh)</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.fsync"><code class="name flex">
+<span>def <span class="ident">fsync</span></span>(<span>self, path, datasync, fip)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fsync(self, path, datasync, fip):
+    if self.raw_fi:
+        fh = fip.contents
+    else:
+        fh = fip.contents.fh
+
+    return self.operations(&#34;fsync&#34;, self._decode_optional_path(path), datasync, fh)</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.setxattr"><code class="name flex">
+<span>def <span class="ident">setxattr</span></span>(<span>self, path, name, value, size, options, *args)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def setxattr(self, path, name, value, size, options, *args):
+    return self.operations(
+        &#34;setxattr&#34;,
+        path.decode(self.encoding),
+        name.decode(self.encoding),
+        string_at(value, size),
+        options,
+        *args
+    )</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.getxattr"><code class="name flex">
+<span>def <span class="ident">getxattr</span></span>(<span>self, path, name, value, size, *args)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getxattr(self, path, name, value, size, *args):
+    ret = self.operations(
+        &#34;getxattr&#34;, path.decode(self.encoding), name.decode(self.encoding), *args
+    )
+
+    retsize = len(ret)
+    # allow size queries
+    if not value:
+        return retsize
+
+    # do not truncate
+    if retsize &gt; size:
+        return -ERANGE
+
+    buf = create_string_buffer(ret, retsize)  # Does not add trailing 0
+    memmove(value, buf, retsize)
+
+    return retsize</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.listxattr"><code class="name flex">
+<span>def <span class="ident">listxattr</span></span>(<span>self, path, namebuf, size)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def listxattr(self, path, namebuf, size):
+    attrs = self.operations(&#34;listxattr&#34;, path.decode(self.encoding)) or &#34;&#34;
+    ret = &#34;\x00&#34;.join(attrs).encode(self.encoding)
+    if len(ret) &gt; 0:
+        ret += &#34;\x00&#34;.encode(self.encoding)
+
+    retsize = len(ret)
+    # allow size queries
+    if not namebuf:
+        return retsize
+
+    # do not truncate
+    if retsize &gt; size:
+        return -ERANGE
+
+    buf = create_string_buffer(ret, retsize)
+    memmove(namebuf, buf, retsize)
+
+    return retsize</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.removexattr"><code class="name flex">
+<span>def <span class="ident">removexattr</span></span>(<span>self, path, name)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def removexattr(self, path, name):
+    return self.operations(
+        &#34;removexattr&#34;, path.decode(self.encoding), name.decode(self.encoding)
+    )</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.opendir"><code class="name flex">
+<span>def <span class="ident">opendir</span></span>(<span>self, path, fip)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def opendir(self, path, fip):
+    # Ignore raw_fi
+    fip.contents.fh = self.operations(&#34;opendir&#34;, path.decode(self.encoding))
+
+    return 0</code></pre>
+</details>
+</dd>
 <dt id="fuse.FUSE.readdir"><code class="name flex">
 <span>def <span class="ident">readdir</span></span>(<span>self, path, buf, filler, offset, fip)</span>
 </code></dt>
@@ -1977,45 +2630,6 @@ class as is to Operations, instead of just the fh field.</p>
     return 0</code></pre>
 </details>
 </dd>
-<dt id="fuse.FUSE.readlink"><code class="name flex">
-<span>def <span class="ident">readlink</span></span>(<span>self, path, buf, bufsize)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def readlink(self, path, buf, bufsize):
-    ret = self.operations(&#34;readlink&#34;, path.decode(self.encoding)).encode(
-        self.encoding
-    )
-
-    # copies a string into the given buffer
-    # (null terminated and truncated if necessary)
-    data = create_string_buffer(ret[: bufsize - 1])
-    memmove(buf, data, len(data))
-    return 0</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.release"><code class="name flex">
-<span>def <span class="ident">release</span></span>(<span>self, path, fip)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def release(self, path, fip):
-    if self.raw_fi:
-        fh = fip.contents
-    else:
-        fh = fip.contents.fh
-
-    return self.operations(&#34;release&#34;, self._decode_optional_path(path), fh)</code></pre>
-</details>
-</dd>
 <dt id="fuse.FUSE.releasedir"><code class="name flex">
 <span>def <span class="ident">releasedir</span></span>(<span>self, path, fip)</span>
 </code></dt>
@@ -2032,8 +2646,8 @@ class as is to Operations, instead of just the fh field.</p>
     )</code></pre>
 </details>
 </dd>
-<dt id="fuse.FUSE.removexattr"><code class="name flex">
-<span>def <span class="ident">removexattr</span></span>(<span>self, path, name)</span>
+<dt id="fuse.FUSE.fsyncdir"><code class="name flex">
+<span>def <span class="ident">fsyncdir</span></span>(<span>self, path, datasync, fip)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2041,14 +2655,15 @@ class as is to Operations, instead of just the fh field.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def removexattr(self, path, name):
+<pre><code class="python">def fsyncdir(self, path, datasync, fip):
+    # Ignore raw_fi
     return self.operations(
-        &#34;removexattr&#34;, path.decode(self.encoding), name.decode(self.encoding)
+        &#34;fsyncdir&#34;, self._decode_optional_path(path), datasync, fip.contents.fh
     )</code></pre>
 </details>
 </dd>
-<dt id="fuse.FUSE.rename"><code class="name flex">
-<span>def <span class="ident">rename</span></span>(<span>self, old, new)</span>
+<dt id="fuse.FUSE.init"><code class="name flex">
+<span>def <span class="ident">init</span></span>(<span>self, conn)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2056,14 +2671,12 @@ class as is to Operations, instead of just the fh field.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def rename(self, old, new):
-    return self.operations(
-        &#34;rename&#34;, old.decode(self.encoding), new.decode(self.encoding)
-    )</code></pre>
+<pre><code class="python">def init(self, conn):
+    return self.operations(&#34;init&#34;, &#34;/&#34;)</code></pre>
 </details>
 </dd>
-<dt id="fuse.FUSE.rmdir"><code class="name flex">
-<span>def <span class="ident">rmdir</span></span>(<span>self, path)</span>
+<dt id="fuse.FUSE.destroy"><code class="name flex">
+<span>def <span class="ident">destroy</span></span>(<span>self, private_data)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2071,12 +2684,12 @@ class as is to Operations, instead of just the fh field.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def rmdir(self, path):
-    return self.operations(&#34;rmdir&#34;, path.decode(self.encoding))</code></pre>
+<pre><code class="python">def destroy(self, private_data):
+    return self.operations(&#34;destroy&#34;, &#34;/&#34;)</code></pre>
 </details>
 </dd>
-<dt id="fuse.FUSE.setxattr"><code class="name flex">
-<span>def <span class="ident">setxattr</span></span>(<span>self, path, name, value, size, options, *args)</span>
+<dt id="fuse.FUSE.access"><code class="name flex">
+<span>def <span class="ident">access</span></span>(<span>self, path, amode)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2084,19 +2697,12 @@ class as is to Operations, instead of just the fh field.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def setxattr(self, path, name, value, size, options, *args):
-    return self.operations(
-        &#34;setxattr&#34;,
-        path.decode(self.encoding),
-        name.decode(self.encoding),
-        string_at(value, size),
-        options,
-        *args
-    )</code></pre>
+<pre><code class="python">def access(self, path, amode):
+    return self.operations(&#34;access&#34;, path.decode(self.encoding), amode)</code></pre>
 </details>
 </dd>
-<dt id="fuse.FUSE.statfs"><code class="name flex">
-<span>def <span class="ident">statfs</span></span>(<span>self, path, buf)</span>
+<dt id="fuse.FUSE.create"><code class="name flex">
+<span>def <span class="ident">create</span></span>(<span>self, path, mode, fip)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2104,57 +2710,76 @@ class as is to Operations, instead of just the fh field.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def statfs(self, path, buf):
-    stv = buf.contents
-    attrs = self.operations(&#34;statfs&#34;, path.decode(self.encoding))
-    for key, val in attrs.items():
-        if hasattr(stv, key):
-            setattr(stv, key, val)
+<pre><code class="python">def create(self, path, mode, fip):
+    fi = fip.contents
+    path = path.decode(self.encoding)
 
+    if self.raw_fi:
+        return self.operations(&#34;create&#34;, path, mode, fi)
+    else:
+        fi.fh = self.operations(&#34;create&#34;, path, mode)
+        return 0</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.ftruncate"><code class="name flex">
+<span>def <span class="ident">ftruncate</span></span>(<span>self, path, length, fip)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ftruncate(self, path, length, fip):
+    if self.raw_fi:
+        fh = fip.contents
+    else:
+        fh = fip.contents.fh
+
+    return self.operations(&#34;truncate&#34;, self._decode_optional_path(path), length, fh)</code></pre>
+</details>
+</dd>
+<dt id="fuse.FUSE.fgetattr"><code class="name flex">
+<span>def <span class="ident">fgetattr</span></span>(<span>self, path, buf, fip)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fgetattr(self, path, buf, fip):
+    memset(buf, 0, sizeof(c_stat))
+
+    st = buf.contents
+    if not fip:
+        fh = fip
+    elif self.raw_fi:
+        fh = fip.contents
+    else:
+        fh = fip.contents.fh
+
+    attrs = self.operations(&#34;getattr&#34;, self._decode_optional_path(path), fh)
+    set_st_attrs(st, attrs)
     return 0</code></pre>
 </details>
 </dd>
-<dt id="fuse.FUSE.symlink"><code class="name flex">
-<span>def <span class="ident">symlink</span></span>(<span>self, source, target)</span>
+<dt id="fuse.FUSE.lock"><code class="name flex">
+<span>def <span class="ident">lock</span></span>(<span>self, path, fip, cmd, lock)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>creates a symlink <code>target -&gt; source</code> (e.g. ln -s source target)</p></div>
+<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def symlink(self, source, target):
-    &#34;creates a symlink `target -&gt; source` (e.g. ln -s source target)&#34;
+<pre><code class="python">def lock(self, path, fip, cmd, lock):
+    if self.raw_fi:
+        fh = fip.contents
+    else:
+        fh = fip.contents.fh
 
-    return self.operations(
-        &#34;symlink&#34;, target.decode(self.encoding), source.decode(self.encoding)
-    )</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.truncate"><code class="name flex">
-<span>def <span class="ident">truncate</span></span>(<span>self, path, length)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def truncate(self, path, length):
-    return self.operations(&#34;truncate&#34;, path.decode(self.encoding), length)</code></pre>
-</details>
-</dd>
-<dt id="fuse.FUSE.unlink"><code class="name flex">
-<span>def <span class="ident">unlink</span></span>(<span>self, path)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def unlink(self, path):
-    return self.operations(&#34;unlink&#34;, path.decode(self.encoding))</code></pre>
+    return self.operations(&#34;lock&#34;, self._decode_optional_path(path), fh, cmd, lock)</code></pre>
 </details>
 </dd>
 <dt id="fuse.FUSE.utimens"><code class="name flex">
@@ -2177,8 +2802,8 @@ class as is to Operations, instead of just the fh field.</p>
     return self.operations(&#34;utimens&#34;, path.decode(self.encoding), times)</code></pre>
 </details>
 </dd>
-<dt id="fuse.FUSE.write"><code class="name flex">
-<span>def <span class="ident">write</span></span>(<span>self, path, buf, size, offset, fip)</span>
+<dt id="fuse.FUSE.bmap"><code class="name flex">
+<span>def <span class="ident">bmap</span></span>(<span>self, path, blocksize, idx)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2186,73 +2811,9 @@ class as is to Operations, instead of just the fh field.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def write(self, path, buf, size, offset, fip):
-    data = string_at(buf, size)
-
-    if self.raw_fi:
-        fh = fip.contents
-    else:
-        fh = fip.contents.fh
-
-    return self.operations(
-        &#34;write&#34;, self._decode_optional_path(path), data, offset, fh
-    )</code></pre>
+<pre><code class="python">def bmap(self, path, blocksize, idx):
+    return self.operations(&#34;bmap&#34;, path.decode(self.encoding), blocksize, idx)</code></pre>
 </details>
-</dd>
-</dl>
-</dd>
-<dt id="fuse.FuseOSError"><code class="flex name class">
-<span>class <span class="ident">FuseOSError</span></span>
-<span>(</span><span>errno)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Base class for I/O related errors.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class FuseOSError(OSError):
-    def __init__(self, errno):
-        super(FuseOSError, self).__init__(errno, os.strerror(errno))</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>builtins.OSError</li>
-<li>builtins.Exception</li>
-<li>builtins.BaseException</li>
-</ul>
-</dd>
-<dt id="fuse.LoggingMixIn"><code class="flex name class">
-<span>class <span class="ident">LoggingMixIn</span></span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class LoggingMixIn:
-    log = logging.getLogger(&#34;fuse.log-mixin&#34;)
-
-    def __call__(self, op, path, *args):
-        if hasattr(self, &#34;logqueue&#34;) and self.logqueue:
-            self.logqueue.put([&#34;-&gt;&#34;, op, path, repr(args), *get_caller()])
-        ret = &#34;[Unhandled Exception]&#34;
-        try:
-            ret = getattr(self, op)(path, *args)
-            return ret
-        except OSError as e:
-            ret = str(e)
-            raise
-        finally:
-            if hasattr(self, &#34;logqueue&#34;) and self.logqueue:
-                self.logqueue.put([&#34;&lt;-&#34;, op, repr(ret)])</code></pre>
-</details>
-<h3>Class variables</h3>
-<dl>
-<dt id="fuse.LoggingMixIn.log"><code class="name">var <span class="ident">log</span></code></dt>
-<dd>
-<div class="desc"></div>
 </dd>
 </dl>
 </dd>
@@ -2956,598 +3517,37 @@ statvfs(3).</p>
 </dd>
 </dl>
 </dd>
-<dt id="fuse.c_stat"><code class="flex name class">
-<span>class <span class="ident">c_stat</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<dt id="fuse.LoggingMixIn"><code class="flex name class">
+<span>class <span class="ident">LoggingMixIn</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Structure base class</p></div>
+<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class c_stat(Structure):
-    pass  # Platform dependent</code></pre>
+<pre><code class="python">class LoggingMixIn:
+    log = logging.getLogger(&#34;fuse.log-mixin&#34;)
+
+    def __call__(self, op, path, *args):
+        if hasattr(self, &#34;logqueue&#34;) and self.logqueue:
+            self.logqueue.put([&#34;-&gt;&#34;, op, path, repr(args), *get_caller()])
+        ret = &#34;[Unhandled Exception]&#34;
+        try:
+            ret = getattr(self, op)(path, *args)
+            return ret
+        except OSError as e:
+            ret = str(e)
+            raise
+        finally:
+            if hasattr(self, &#34;logqueue&#34;) and self.logqueue:
+                self.logqueue.put([&#34;&lt;-&#34;, op, repr(ret)])</code></pre>
 </details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>_ctypes.Structure</li>
-<li>_ctypes._CData</li>
-</ul>
-<h3>Instance variables</h3>
+<h3>Class variables</h3>
 <dl>
-<dt id="fuse.c_stat.st_atimespec"><code class="name">var <span class="ident">st_atimespec</span></code></dt>
+<dt id="fuse.LoggingMixIn.log"><code class="name">var <span class="ident">log</span></code></dt>
 <dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_stat.st_blksize"><code class="name">var <span class="ident">st_blksize</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_stat.st_blocks"><code class="name">var <span class="ident">st_blocks</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_stat.st_ctimespec"><code class="name">var <span class="ident">st_ctimespec</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_stat.st_dev"><code class="name">var <span class="ident">st_dev</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_stat.st_gid"><code class="name">var <span class="ident">st_gid</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_stat.st_ino"><code class="name">var <span class="ident">st_ino</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_stat.st_mode"><code class="name">var <span class="ident">st_mode</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_stat.st_mtimespec"><code class="name">var <span class="ident">st_mtimespec</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_stat.st_nlink"><code class="name">var <span class="ident">st_nlink</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_stat.st_rdev"><code class="name">var <span class="ident">st_rdev</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_stat.st_size"><code class="name">var <span class="ident">st_size</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_stat.st_uid"><code class="name">var <span class="ident">st_uid</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-</dl>
-</dd>
-<dt id="fuse.c_statvfs"><code class="flex name class">
-<span>class <span class="ident">c_statvfs</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Structure base class</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class c_statvfs(Structure):
-    _fields_ = [
-        (&#34;f_bsize&#34;, c_ulong),
-        (&#34;f_frsize&#34;, c_ulong),
-        (&#34;f_blocks&#34;, c_fsblkcnt_t),
-        (&#34;f_bfree&#34;, c_fsblkcnt_t),
-        (&#34;f_bavail&#34;, c_fsblkcnt_t),
-        (&#34;f_files&#34;, c_fsfilcnt_t),
-        (&#34;f_ffree&#34;, c_fsfilcnt_t),
-        (&#34;f_favail&#34;, c_fsfilcnt_t),
-        (&#34;f_fsid&#34;, c_ulong),
-        # (&#39;unused&#39;, c_int),
-        (&#34;f_flag&#34;, c_ulong),
-        (&#34;f_namemax&#34;, c_ulong),
-    ]</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>_ctypes.Structure</li>
-<li>_ctypes._CData</li>
-</ul>
-<h3>Instance variables</h3>
-<dl>
-<dt id="fuse.c_statvfs.f_bavail"><code class="name">var <span class="ident">f_bavail</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_statvfs.f_bfree"><code class="name">var <span class="ident">f_bfree</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_statvfs.f_blocks"><code class="name">var <span class="ident">f_blocks</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_statvfs.f_bsize"><code class="name">var <span class="ident">f_bsize</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_statvfs.f_favail"><code class="name">var <span class="ident">f_favail</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_statvfs.f_ffree"><code class="name">var <span class="ident">f_ffree</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_statvfs.f_files"><code class="name">var <span class="ident">f_files</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_statvfs.f_flag"><code class="name">var <span class="ident">f_flag</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_statvfs.f_frsize"><code class="name">var <span class="ident">f_frsize</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_statvfs.f_fsid"><code class="name">var <span class="ident">f_fsid</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_statvfs.f_namemax"><code class="name">var <span class="ident">f_namemax</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-</dl>
-</dd>
-<dt id="fuse.c_timespec"><code class="flex name class">
-<span>class <span class="ident">c_timespec</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Structure base class</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class c_timespec(Structure):
-    _fields_ = [(&#34;tv_sec&#34;, c_long), (&#34;tv_nsec&#34;, c_long)]</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>_ctypes.Structure</li>
-<li>_ctypes._CData</li>
-</ul>
-<h3>Instance variables</h3>
-<dl>
-<dt id="fuse.c_timespec.tv_nsec"><code class="name">var <span class="ident">tv_nsec</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_timespec.tv_sec"><code class="name">var <span class="ident">tv_sec</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-</dl>
-</dd>
-<dt id="fuse.c_utimbuf"><code class="flex name class">
-<span>class <span class="ident">c_utimbuf</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Structure base class</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class c_utimbuf(Structure):
-    _fields_ = [(&#34;actime&#34;, c_timespec), (&#34;modtime&#34;, c_timespec)]</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>_ctypes.Structure</li>
-<li>_ctypes._CData</li>
-</ul>
-<h3>Instance variables</h3>
-<dl>
-<dt id="fuse.c_utimbuf.actime"><code class="name">var <span class="ident">actime</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.c_utimbuf.modtime"><code class="name">var <span class="ident">modtime</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-</dl>
-</dd>
-<dt id="fuse.fuse_context"><code class="flex name class">
-<span>class <span class="ident">fuse_context</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Structure base class</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class fuse_context(Structure):
-    _fields_ = [
-        (&#34;fuse&#34;, c_voidp),
-        (&#34;uid&#34;, c_uid_t),
-        (&#34;gid&#34;, c_gid_t),
-        (&#34;pid&#34;, c_pid_t),
-        (&#34;private_data&#34;, c_voidp),
-    ]</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>_ctypes.Structure</li>
-<li>_ctypes._CData</li>
-</ul>
-<h3>Instance variables</h3>
-<dl>
-<dt id="fuse.fuse_context.fuse"><code class="name">var <span class="ident">fuse</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_context.gid"><code class="name">var <span class="ident">gid</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_context.pid"><code class="name">var <span class="ident">pid</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_context.private_data"><code class="name">var <span class="ident">private_data</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_context.uid"><code class="name">var <span class="ident">uid</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-</dl>
-</dd>
-<dt id="fuse.fuse_file_info"><code class="flex name class">
-<span>class <span class="ident">fuse_file_info</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Structure base class</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class fuse_file_info(Structure):
-    _fields_ = [
-        (&#34;flags&#34;, c_int),
-        (&#34;fh_old&#34;, c_ulong),
-        (&#34;writepage&#34;, c_int),
-        (&#34;direct_io&#34;, c_uint, 1),
-        (&#34;keep_cache&#34;, c_uint, 1),
-        (&#34;flush&#34;, c_uint, 1),
-        (&#34;padding&#34;, c_uint, 29),
-        (&#34;fh&#34;, c_uint64),
-        (&#34;lock_owner&#34;, c_uint64),
-    ]</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>_ctypes.Structure</li>
-<li>_ctypes._CData</li>
-</ul>
-<h3>Instance variables</h3>
-<dl>
-<dt id="fuse.fuse_file_info.direct_io"><code class="name">var <span class="ident">direct_io</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_file_info.fh"><code class="name">var <span class="ident">fh</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_file_info.fh_old"><code class="name">var <span class="ident">fh_old</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_file_info.flags"><code class="name">var <span class="ident">flags</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_file_info.flush"><code class="name">var <span class="ident">flush</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_file_info.keep_cache"><code class="name">var <span class="ident">keep_cache</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_file_info.lock_owner"><code class="name">var <span class="ident">lock_owner</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_file_info.padding"><code class="name">var <span class="ident">padding</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_file_info.writepage"><code class="name">var <span class="ident">writepage</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-</dl>
-</dd>
-<dt id="fuse.fuse_operations"><code class="flex name class">
-<span>class <span class="ident">fuse_operations</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Structure base class</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class fuse_operations(Structure):
-    _fields_ = [
-        (&#34;getattr&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(c_stat))),
-        (&#34;readlink&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(c_byte), c_size_t)),
-        (&#34;getdir&#34;, c_voidp),  # Deprecated, use readdir
-        (&#34;mknod&#34;, CFUNCTYPE(c_int, c_char_p, c_mode_t, c_dev_t)),
-        (&#34;mkdir&#34;, CFUNCTYPE(c_int, c_char_p, c_mode_t)),
-        (&#34;unlink&#34;, CFUNCTYPE(c_int, c_char_p)),
-        (&#34;rmdir&#34;, CFUNCTYPE(c_int, c_char_p)),
-        (&#34;symlink&#34;, CFUNCTYPE(c_int, c_char_p, c_char_p)),
-        (&#34;rename&#34;, CFUNCTYPE(c_int, c_char_p, c_char_p)),
-        (&#34;link&#34;, CFUNCTYPE(c_int, c_char_p, c_char_p)),
-        (&#34;chmod&#34;, CFUNCTYPE(c_int, c_char_p, c_mode_t)),
-        (&#34;chown&#34;, CFUNCTYPE(c_int, c_char_p, c_uid_t, c_gid_t)),
-        (&#34;truncate&#34;, CFUNCTYPE(c_int, c_char_p, c_off_t)),
-        (&#34;utime&#34;, c_voidp),  # Deprecated, use utimens
-        (&#34;open&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(fuse_file_info))),
-        (
-            &#34;read&#34;,
-            CFUNCTYPE(
-                c_int,
-                c_char_p,
-                POINTER(c_byte),
-                c_size_t,
-                c_off_t,
-                POINTER(fuse_file_info),
-            ),
-        ),
-        (
-            &#34;write&#34;,
-            CFUNCTYPE(
-                c_int,
-                c_char_p,
-                POINTER(c_byte),
-                c_size_t,
-                c_off_t,
-                POINTER(fuse_file_info),
-            ),
-        ),
-        (&#34;statfs&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(c_statvfs))),
-        (&#34;flush&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(fuse_file_info))),
-        (&#34;release&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(fuse_file_info))),
-        (&#34;fsync&#34;, CFUNCTYPE(c_int, c_char_p, c_int, POINTER(fuse_file_info))),
-        (&#34;setxattr&#34;, setxattr_t),
-        (&#34;getxattr&#34;, getxattr_t),
-        (&#34;listxattr&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(c_byte), c_size_t)),
-        (&#34;removexattr&#34;, CFUNCTYPE(c_int, c_char_p, c_char_p)),
-        (&#34;opendir&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(fuse_file_info))),
-        (
-            &#34;readdir&#34;,
-            CFUNCTYPE(
-                c_int,
-                c_char_p,
-                c_voidp,
-                CFUNCTYPE(c_int, c_voidp, c_char_p, POINTER(c_stat), c_off_t),
-                c_off_t,
-                POINTER(fuse_file_info),
-            ),
-        ),
-        (&#34;releasedir&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(fuse_file_info))),
-        (&#34;fsyncdir&#34;, CFUNCTYPE(c_int, c_char_p, c_int, POINTER(fuse_file_info))),
-        (&#34;init&#34;, CFUNCTYPE(c_voidp, c_voidp)),
-        (&#34;destroy&#34;, CFUNCTYPE(c_voidp, c_voidp)),
-        (&#34;access&#34;, CFUNCTYPE(c_int, c_char_p, c_int)),
-        (&#34;create&#34;, CFUNCTYPE(c_int, c_char_p, c_mode_t, POINTER(fuse_file_info))),
-        (&#34;ftruncate&#34;, CFUNCTYPE(c_int, c_char_p, c_off_t, POINTER(fuse_file_info))),
-        (
-            &#34;fgetattr&#34;,
-            CFUNCTYPE(c_int, c_char_p, POINTER(c_stat), POINTER(fuse_file_info)),
-        ),
-        (&#34;lock&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(fuse_file_info), c_int, c_voidp)),
-        (&#34;utimens&#34;, CFUNCTYPE(c_int, c_char_p, POINTER(c_utimbuf))),
-        (&#34;bmap&#34;, CFUNCTYPE(c_int, c_char_p, c_size_t, POINTER(c_ulonglong))),
-        (&#34;flag_nullpath_ok&#34;, c_uint, 1),
-        (&#34;flag_nopath&#34;, c_uint, 1),
-        (&#34;flag_utime_omit_ok&#34;, c_uint, 1),
-        (&#34;flag_reserved&#34;, c_uint, 29),
-    ]</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>_ctypes.Structure</li>
-<li>_ctypes._CData</li>
-</ul>
-<h3>Instance variables</h3>
-<dl>
-<dt id="fuse.fuse_operations.access"><code class="name">var <span class="ident">access</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.bmap"><code class="name">var <span class="ident">bmap</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.chmod"><code class="name">var <span class="ident">chmod</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.chown"><code class="name">var <span class="ident">chown</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.create"><code class="name">var <span class="ident">create</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.destroy"><code class="name">var <span class="ident">destroy</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.fgetattr"><code class="name">var <span class="ident">fgetattr</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.flag_nopath"><code class="name">var <span class="ident">flag_nopath</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.flag_nullpath_ok"><code class="name">var <span class="ident">flag_nullpath_ok</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.flag_reserved"><code class="name">var <span class="ident">flag_reserved</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.flag_utime_omit_ok"><code class="name">var <span class="ident">flag_utime_omit_ok</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.flush"><code class="name">var <span class="ident">flush</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.fsync"><code class="name">var <span class="ident">fsync</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.fsyncdir"><code class="name">var <span class="ident">fsyncdir</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.ftruncate"><code class="name">var <span class="ident">ftruncate</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.getattr"><code class="name">var <span class="ident">getattr</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.getdir"><code class="name">var <span class="ident">getdir</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.getxattr"><code class="name">var <span class="ident">getxattr</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.init"><code class="name">var <span class="ident">init</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.link"><code class="name">var <span class="ident">link</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.listxattr"><code class="name">var <span class="ident">listxattr</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.lock"><code class="name">var <span class="ident">lock</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.mkdir"><code class="name">var <span class="ident">mkdir</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.mknod"><code class="name">var <span class="ident">mknod</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.open"><code class="name">var <span class="ident">open</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.opendir"><code class="name">var <span class="ident">opendir</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.read"><code class="name">var <span class="ident">read</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.readdir"><code class="name">var <span class="ident">readdir</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.readlink"><code class="name">var <span class="ident">readlink</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.release"><code class="name">var <span class="ident">release</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.releasedir"><code class="name">var <span class="ident">releasedir</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.removexattr"><code class="name">var <span class="ident">removexattr</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.rename"><code class="name">var <span class="ident">rename</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.rmdir"><code class="name">var <span class="ident">rmdir</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.setxattr"><code class="name">var <span class="ident">setxattr</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.statfs"><code class="name">var <span class="ident">statfs</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.symlink"><code class="name">var <span class="ident">symlink</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.truncate"><code class="name">var <span class="ident">truncate</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.unlink"><code class="name">var <span class="ident">unlink</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.utime"><code class="name">var <span class="ident">utime</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.utimens"><code class="name">var <span class="ident">utimens</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
-</dd>
-<dt id="fuse.fuse_operations.write"><code class="name">var <span class="ident">write</span></code></dt>
-<dd>
-<div class="desc"><p>Structure/Union member</p></div>
+<div class="desc"></div>
 </dd>
 </dl>
 </dd>
@@ -3562,70 +3562,182 @@ statvfs(3).</p>
 <ul id="index">
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="fuse.time_of_timespec" href="#fuse.time_of_timespec">time_of_timespec</a></code></li>
+<li><code><a title="fuse.set_st_attrs" href="#fuse.set_st_attrs">set_st_attrs</a></code></li>
 <li><code><a title="fuse.fuse_get_context" href="#fuse.fuse_get_context">fuse_get_context</a></code></li>
 <li><code><a title="fuse.get_caller" href="#fuse.get_caller">get_caller</a></code></li>
-<li><code><a title="fuse.set_st_attrs" href="#fuse.set_st_attrs">set_st_attrs</a></code></li>
-<li><code><a title="fuse.time_of_timespec" href="#fuse.time_of_timespec">time_of_timespec</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="fuse.FUSE" href="#fuse.FUSE">FUSE</a></code></h4>
+<h4><code><a title="fuse.c_timespec" href="#fuse.c_timespec">c_timespec</a></code></h4>
+<ul class="">
+<li><code><a title="fuse.c_timespec.tv_sec" href="#fuse.c_timespec.tv_sec">tv_sec</a></code></li>
+<li><code><a title="fuse.c_timespec.tv_nsec" href="#fuse.c_timespec.tv_nsec">tv_nsec</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fuse.c_utimbuf" href="#fuse.c_utimbuf">c_utimbuf</a></code></h4>
+<ul class="">
+<li><code><a title="fuse.c_utimbuf.actime" href="#fuse.c_utimbuf.actime">actime</a></code></li>
+<li><code><a title="fuse.c_utimbuf.modtime" href="#fuse.c_utimbuf.modtime">modtime</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fuse.c_stat" href="#fuse.c_stat">c_stat</a></code></h4>
 <ul class="two-column">
-<li><code><a title="fuse.FUSE.OPTIONS" href="#fuse.FUSE.OPTIONS">OPTIONS</a></code></li>
-<li><code><a title="fuse.FUSE.access" href="#fuse.FUSE.access">access</a></code></li>
-<li><code><a title="fuse.FUSE.bmap" href="#fuse.FUSE.bmap">bmap</a></code></li>
-<li><code><a title="fuse.FUSE.chmod" href="#fuse.FUSE.chmod">chmod</a></code></li>
-<li><code><a title="fuse.FUSE.chown" href="#fuse.FUSE.chown">chown</a></code></li>
-<li><code><a title="fuse.FUSE.create" href="#fuse.FUSE.create">create</a></code></li>
-<li><code><a title="fuse.FUSE.destroy" href="#fuse.FUSE.destroy">destroy</a></code></li>
-<li><code><a title="fuse.FUSE.fgetattr" href="#fuse.FUSE.fgetattr">fgetattr</a></code></li>
-<li><code><a title="fuse.FUSE.flush" href="#fuse.FUSE.flush">flush</a></code></li>
-<li><code><a title="fuse.FUSE.fsync" href="#fuse.FUSE.fsync">fsync</a></code></li>
-<li><code><a title="fuse.FUSE.fsyncdir" href="#fuse.FUSE.fsyncdir">fsyncdir</a></code></li>
-<li><code><a title="fuse.FUSE.ftruncate" href="#fuse.FUSE.ftruncate">ftruncate</a></code></li>
-<li><code><a title="fuse.FUSE.getattr" href="#fuse.FUSE.getattr">getattr</a></code></li>
-<li><code><a title="fuse.FUSE.getxattr" href="#fuse.FUSE.getxattr">getxattr</a></code></li>
-<li><code><a title="fuse.FUSE.init" href="#fuse.FUSE.init">init</a></code></li>
-<li><code><a title="fuse.FUSE.link" href="#fuse.FUSE.link">link</a></code></li>
-<li><code><a title="fuse.FUSE.listxattr" href="#fuse.FUSE.listxattr">listxattr</a></code></li>
-<li><code><a title="fuse.FUSE.lock" href="#fuse.FUSE.lock">lock</a></code></li>
-<li><code><a title="fuse.FUSE.mkdir" href="#fuse.FUSE.mkdir">mkdir</a></code></li>
-<li><code><a title="fuse.FUSE.mknod" href="#fuse.FUSE.mknod">mknod</a></code></li>
-<li><code><a title="fuse.FUSE.open" href="#fuse.FUSE.open">open</a></code></li>
-<li><code><a title="fuse.FUSE.opendir" href="#fuse.FUSE.opendir">opendir</a></code></li>
-<li><code><a title="fuse.FUSE.read" href="#fuse.FUSE.read">read</a></code></li>
-<li><code><a title="fuse.FUSE.readdir" href="#fuse.FUSE.readdir">readdir</a></code></li>
-<li><code><a title="fuse.FUSE.readlink" href="#fuse.FUSE.readlink">readlink</a></code></li>
-<li><code><a title="fuse.FUSE.release" href="#fuse.FUSE.release">release</a></code></li>
-<li><code><a title="fuse.FUSE.releasedir" href="#fuse.FUSE.releasedir">releasedir</a></code></li>
-<li><code><a title="fuse.FUSE.removexattr" href="#fuse.FUSE.removexattr">removexattr</a></code></li>
-<li><code><a title="fuse.FUSE.rename" href="#fuse.FUSE.rename">rename</a></code></li>
-<li><code><a title="fuse.FUSE.rmdir" href="#fuse.FUSE.rmdir">rmdir</a></code></li>
-<li><code><a title="fuse.FUSE.setxattr" href="#fuse.FUSE.setxattr">setxattr</a></code></li>
-<li><code><a title="fuse.FUSE.statfs" href="#fuse.FUSE.statfs">statfs</a></code></li>
-<li><code><a title="fuse.FUSE.symlink" href="#fuse.FUSE.symlink">symlink</a></code></li>
-<li><code><a title="fuse.FUSE.truncate" href="#fuse.FUSE.truncate">truncate</a></code></li>
-<li><code><a title="fuse.FUSE.unlink" href="#fuse.FUSE.unlink">unlink</a></code></li>
-<li><code><a title="fuse.FUSE.utimens" href="#fuse.FUSE.utimens">utimens</a></code></li>
-<li><code><a title="fuse.FUSE.write" href="#fuse.FUSE.write">write</a></code></li>
+<li><code><a title="fuse.c_stat.st_dev" href="#fuse.c_stat.st_dev">st_dev</a></code></li>
+<li><code><a title="fuse.c_stat.st_ino" href="#fuse.c_stat.st_ino">st_ino</a></code></li>
+<li><code><a title="fuse.c_stat.st_nlink" href="#fuse.c_stat.st_nlink">st_nlink</a></code></li>
+<li><code><a title="fuse.c_stat.st_mode" href="#fuse.c_stat.st_mode">st_mode</a></code></li>
+<li><code><a title="fuse.c_stat.st_uid" href="#fuse.c_stat.st_uid">st_uid</a></code></li>
+<li><code><a title="fuse.c_stat.st_gid" href="#fuse.c_stat.st_gid">st_gid</a></code></li>
+<li><code><a title="fuse.c_stat.st_rdev" href="#fuse.c_stat.st_rdev">st_rdev</a></code></li>
+<li><code><a title="fuse.c_stat.st_size" href="#fuse.c_stat.st_size">st_size</a></code></li>
+<li><code><a title="fuse.c_stat.st_blksize" href="#fuse.c_stat.st_blksize">st_blksize</a></code></li>
+<li><code><a title="fuse.c_stat.st_blocks" href="#fuse.c_stat.st_blocks">st_blocks</a></code></li>
+<li><code><a title="fuse.c_stat.st_atimespec" href="#fuse.c_stat.st_atimespec">st_atimespec</a></code></li>
+<li><code><a title="fuse.c_stat.st_mtimespec" href="#fuse.c_stat.st_mtimespec">st_mtimespec</a></code></li>
+<li><code><a title="fuse.c_stat.st_ctimespec" href="#fuse.c_stat.st_ctimespec">st_ctimespec</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fuse.c_statvfs" href="#fuse.c_statvfs">c_statvfs</a></code></h4>
+<ul class="two-column">
+<li><code><a title="fuse.c_statvfs.f_bsize" href="#fuse.c_statvfs.f_bsize">f_bsize</a></code></li>
+<li><code><a title="fuse.c_statvfs.f_frsize" href="#fuse.c_statvfs.f_frsize">f_frsize</a></code></li>
+<li><code><a title="fuse.c_statvfs.f_blocks" href="#fuse.c_statvfs.f_blocks">f_blocks</a></code></li>
+<li><code><a title="fuse.c_statvfs.f_bfree" href="#fuse.c_statvfs.f_bfree">f_bfree</a></code></li>
+<li><code><a title="fuse.c_statvfs.f_bavail" href="#fuse.c_statvfs.f_bavail">f_bavail</a></code></li>
+<li><code><a title="fuse.c_statvfs.f_files" href="#fuse.c_statvfs.f_files">f_files</a></code></li>
+<li><code><a title="fuse.c_statvfs.f_ffree" href="#fuse.c_statvfs.f_ffree">f_ffree</a></code></li>
+<li><code><a title="fuse.c_statvfs.f_favail" href="#fuse.c_statvfs.f_favail">f_favail</a></code></li>
+<li><code><a title="fuse.c_statvfs.f_fsid" href="#fuse.c_statvfs.f_fsid">f_fsid</a></code></li>
+<li><code><a title="fuse.c_statvfs.f_flag" href="#fuse.c_statvfs.f_flag">f_flag</a></code></li>
+<li><code><a title="fuse.c_statvfs.f_namemax" href="#fuse.c_statvfs.f_namemax">f_namemax</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fuse.fuse_file_info" href="#fuse.fuse_file_info">fuse_file_info</a></code></h4>
+<ul class="two-column">
+<li><code><a title="fuse.fuse_file_info.flags" href="#fuse.fuse_file_info.flags">flags</a></code></li>
+<li><code><a title="fuse.fuse_file_info.fh_old" href="#fuse.fuse_file_info.fh_old">fh_old</a></code></li>
+<li><code><a title="fuse.fuse_file_info.writepage" href="#fuse.fuse_file_info.writepage">writepage</a></code></li>
+<li><code><a title="fuse.fuse_file_info.direct_io" href="#fuse.fuse_file_info.direct_io">direct_io</a></code></li>
+<li><code><a title="fuse.fuse_file_info.keep_cache" href="#fuse.fuse_file_info.keep_cache">keep_cache</a></code></li>
+<li><code><a title="fuse.fuse_file_info.flush" href="#fuse.fuse_file_info.flush">flush</a></code></li>
+<li><code><a title="fuse.fuse_file_info.padding" href="#fuse.fuse_file_info.padding">padding</a></code></li>
+<li><code><a title="fuse.fuse_file_info.fh" href="#fuse.fuse_file_info.fh">fh</a></code></li>
+<li><code><a title="fuse.fuse_file_info.lock_owner" href="#fuse.fuse_file_info.lock_owner">lock_owner</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fuse.fuse_context" href="#fuse.fuse_context">fuse_context</a></code></h4>
+<ul class="">
+<li><code><a title="fuse.fuse_context.fuse" href="#fuse.fuse_context.fuse">fuse</a></code></li>
+<li><code><a title="fuse.fuse_context.uid" href="#fuse.fuse_context.uid">uid</a></code></li>
+<li><code><a title="fuse.fuse_context.gid" href="#fuse.fuse_context.gid">gid</a></code></li>
+<li><code><a title="fuse.fuse_context.pid" href="#fuse.fuse_context.pid">pid</a></code></li>
+<li><code><a title="fuse.fuse_context.private_data" href="#fuse.fuse_context.private_data">private_data</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fuse.fuse_operations" href="#fuse.fuse_operations">fuse_operations</a></code></h4>
+<ul class="two-column">
+<li><code><a title="fuse.fuse_operations.getattr" href="#fuse.fuse_operations.getattr">getattr</a></code></li>
+<li><code><a title="fuse.fuse_operations.readlink" href="#fuse.fuse_operations.readlink">readlink</a></code></li>
+<li><code><a title="fuse.fuse_operations.getdir" href="#fuse.fuse_operations.getdir">getdir</a></code></li>
+<li><code><a title="fuse.fuse_operations.mknod" href="#fuse.fuse_operations.mknod">mknod</a></code></li>
+<li><code><a title="fuse.fuse_operations.mkdir" href="#fuse.fuse_operations.mkdir">mkdir</a></code></li>
+<li><code><a title="fuse.fuse_operations.unlink" href="#fuse.fuse_operations.unlink">unlink</a></code></li>
+<li><code><a title="fuse.fuse_operations.rmdir" href="#fuse.fuse_operations.rmdir">rmdir</a></code></li>
+<li><code><a title="fuse.fuse_operations.symlink" href="#fuse.fuse_operations.symlink">symlink</a></code></li>
+<li><code><a title="fuse.fuse_operations.rename" href="#fuse.fuse_operations.rename">rename</a></code></li>
+<li><code><a title="fuse.fuse_operations.link" href="#fuse.fuse_operations.link">link</a></code></li>
+<li><code><a title="fuse.fuse_operations.chmod" href="#fuse.fuse_operations.chmod">chmod</a></code></li>
+<li><code><a title="fuse.fuse_operations.chown" href="#fuse.fuse_operations.chown">chown</a></code></li>
+<li><code><a title="fuse.fuse_operations.truncate" href="#fuse.fuse_operations.truncate">truncate</a></code></li>
+<li><code><a title="fuse.fuse_operations.utime" href="#fuse.fuse_operations.utime">utime</a></code></li>
+<li><code><a title="fuse.fuse_operations.open" href="#fuse.fuse_operations.open">open</a></code></li>
+<li><code><a title="fuse.fuse_operations.read" href="#fuse.fuse_operations.read">read</a></code></li>
+<li><code><a title="fuse.fuse_operations.write" href="#fuse.fuse_operations.write">write</a></code></li>
+<li><code><a title="fuse.fuse_operations.statfs" href="#fuse.fuse_operations.statfs">statfs</a></code></li>
+<li><code><a title="fuse.fuse_operations.flush" href="#fuse.fuse_operations.flush">flush</a></code></li>
+<li><code><a title="fuse.fuse_operations.release" href="#fuse.fuse_operations.release">release</a></code></li>
+<li><code><a title="fuse.fuse_operations.fsync" href="#fuse.fuse_operations.fsync">fsync</a></code></li>
+<li><code><a title="fuse.fuse_operations.setxattr" href="#fuse.fuse_operations.setxattr">setxattr</a></code></li>
+<li><code><a title="fuse.fuse_operations.getxattr" href="#fuse.fuse_operations.getxattr">getxattr</a></code></li>
+<li><code><a title="fuse.fuse_operations.listxattr" href="#fuse.fuse_operations.listxattr">listxattr</a></code></li>
+<li><code><a title="fuse.fuse_operations.removexattr" href="#fuse.fuse_operations.removexattr">removexattr</a></code></li>
+<li><code><a title="fuse.fuse_operations.opendir" href="#fuse.fuse_operations.opendir">opendir</a></code></li>
+<li><code><a title="fuse.fuse_operations.readdir" href="#fuse.fuse_operations.readdir">readdir</a></code></li>
+<li><code><a title="fuse.fuse_operations.releasedir" href="#fuse.fuse_operations.releasedir">releasedir</a></code></li>
+<li><code><a title="fuse.fuse_operations.fsyncdir" href="#fuse.fuse_operations.fsyncdir">fsyncdir</a></code></li>
+<li><code><a title="fuse.fuse_operations.init" href="#fuse.fuse_operations.init">init</a></code></li>
+<li><code><a title="fuse.fuse_operations.destroy" href="#fuse.fuse_operations.destroy">destroy</a></code></li>
+<li><code><a title="fuse.fuse_operations.access" href="#fuse.fuse_operations.access">access</a></code></li>
+<li><code><a title="fuse.fuse_operations.create" href="#fuse.fuse_operations.create">create</a></code></li>
+<li><code><a title="fuse.fuse_operations.ftruncate" href="#fuse.fuse_operations.ftruncate">ftruncate</a></code></li>
+<li><code><a title="fuse.fuse_operations.fgetattr" href="#fuse.fuse_operations.fgetattr">fgetattr</a></code></li>
+<li><code><a title="fuse.fuse_operations.lock" href="#fuse.fuse_operations.lock">lock</a></code></li>
+<li><code><a title="fuse.fuse_operations.utimens" href="#fuse.fuse_operations.utimens">utimens</a></code></li>
+<li><code><a title="fuse.fuse_operations.bmap" href="#fuse.fuse_operations.bmap">bmap</a></code></li>
+<li><code><a title="fuse.fuse_operations.flag_nullpath_ok" href="#fuse.fuse_operations.flag_nullpath_ok">flag_nullpath_ok</a></code></li>
+<li><code><a title="fuse.fuse_operations.flag_nopath" href="#fuse.fuse_operations.flag_nopath">flag_nopath</a></code></li>
+<li><code><a title="fuse.fuse_operations.flag_utime_omit_ok" href="#fuse.fuse_operations.flag_utime_omit_ok">flag_utime_omit_ok</a></code></li>
+<li><code><a title="fuse.fuse_operations.flag_reserved" href="#fuse.fuse_operations.flag_reserved">flag_reserved</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="fuse.FuseOSError" href="#fuse.FuseOSError">FuseOSError</a></code></h4>
 </li>
 <li>
-<h4><code><a title="fuse.LoggingMixIn" href="#fuse.LoggingMixIn">LoggingMixIn</a></code></h4>
-<ul class="">
-<li><code><a title="fuse.LoggingMixIn.log" href="#fuse.LoggingMixIn.log">log</a></code></li>
+<h4><code><a title="fuse.FUSE" href="#fuse.FUSE">FUSE</a></code></h4>
+<ul class="two-column">
+<li><code><a title="fuse.FUSE.getattr" href="#fuse.FUSE.getattr">getattr</a></code></li>
+<li><code><a title="fuse.FUSE.readlink" href="#fuse.FUSE.readlink">readlink</a></code></li>
+<li><code><a title="fuse.FUSE.mknod" href="#fuse.FUSE.mknod">mknod</a></code></li>
+<li><code><a title="fuse.FUSE.mkdir" href="#fuse.FUSE.mkdir">mkdir</a></code></li>
+<li><code><a title="fuse.FUSE.unlink" href="#fuse.FUSE.unlink">unlink</a></code></li>
+<li><code><a title="fuse.FUSE.rmdir" href="#fuse.FUSE.rmdir">rmdir</a></code></li>
+<li><code><a title="fuse.FUSE.symlink" href="#fuse.FUSE.symlink">symlink</a></code></li>
+<li><code><a title="fuse.FUSE.rename" href="#fuse.FUSE.rename">rename</a></code></li>
+<li><code><a title="fuse.FUSE.link" href="#fuse.FUSE.link">link</a></code></li>
+<li><code><a title="fuse.FUSE.chmod" href="#fuse.FUSE.chmod">chmod</a></code></li>
+<li><code><a title="fuse.FUSE.chown" href="#fuse.FUSE.chown">chown</a></code></li>
+<li><code><a title="fuse.FUSE.truncate" href="#fuse.FUSE.truncate">truncate</a></code></li>
+<li><code><a title="fuse.FUSE.open" href="#fuse.FUSE.open">open</a></code></li>
+<li><code><a title="fuse.FUSE.read" href="#fuse.FUSE.read">read</a></code></li>
+<li><code><a title="fuse.FUSE.write" href="#fuse.FUSE.write">write</a></code></li>
+<li><code><a title="fuse.FUSE.statfs" href="#fuse.FUSE.statfs">statfs</a></code></li>
+<li><code><a title="fuse.FUSE.flush" href="#fuse.FUSE.flush">flush</a></code></li>
+<li><code><a title="fuse.FUSE.release" href="#fuse.FUSE.release">release</a></code></li>
+<li><code><a title="fuse.FUSE.fsync" href="#fuse.FUSE.fsync">fsync</a></code></li>
+<li><code><a title="fuse.FUSE.setxattr" href="#fuse.FUSE.setxattr">setxattr</a></code></li>
+<li><code><a title="fuse.FUSE.getxattr" href="#fuse.FUSE.getxattr">getxattr</a></code></li>
+<li><code><a title="fuse.FUSE.listxattr" href="#fuse.FUSE.listxattr">listxattr</a></code></li>
+<li><code><a title="fuse.FUSE.removexattr" href="#fuse.FUSE.removexattr">removexattr</a></code></li>
+<li><code><a title="fuse.FUSE.opendir" href="#fuse.FUSE.opendir">opendir</a></code></li>
+<li><code><a title="fuse.FUSE.readdir" href="#fuse.FUSE.readdir">readdir</a></code></li>
+<li><code><a title="fuse.FUSE.releasedir" href="#fuse.FUSE.releasedir">releasedir</a></code></li>
+<li><code><a title="fuse.FUSE.fsyncdir" href="#fuse.FUSE.fsyncdir">fsyncdir</a></code></li>
+<li><code><a title="fuse.FUSE.init" href="#fuse.FUSE.init">init</a></code></li>
+<li><code><a title="fuse.FUSE.destroy" href="#fuse.FUSE.destroy">destroy</a></code></li>
+<li><code><a title="fuse.FUSE.access" href="#fuse.FUSE.access">access</a></code></li>
+<li><code><a title="fuse.FUSE.create" href="#fuse.FUSE.create">create</a></code></li>
+<li><code><a title="fuse.FUSE.ftruncate" href="#fuse.FUSE.ftruncate">ftruncate</a></code></li>
+<li><code><a title="fuse.FUSE.fgetattr" href="#fuse.FUSE.fgetattr">fgetattr</a></code></li>
+<li><code><a title="fuse.FUSE.lock" href="#fuse.FUSE.lock">lock</a></code></li>
+<li><code><a title="fuse.FUSE.utimens" href="#fuse.FUSE.utimens">utimens</a></code></li>
+<li><code><a title="fuse.FUSE.bmap" href="#fuse.FUSE.bmap">bmap</a></code></li>
+<li><code><a title="fuse.FUSE.OPTIONS" href="#fuse.FUSE.OPTIONS">OPTIONS</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="fuse.Operations" href="#fuse.Operations">Operations</a></code></h4>
 <ul class="two-column">
 <li><code><a title="fuse.Operations.access" href="#fuse.Operations.access">access</a></code></li>
-<li><code><a title="fuse.Operations.bmap" href="#fuse.Operations.bmap">bmap</a></code></li>
 <li><code><a title="fuse.Operations.chmod" href="#fuse.Operations.chmod">chmod</a></code></li>
 <li><code><a title="fuse.Operations.chown" href="#fuse.Operations.chown">chown</a></code></li>
 <li><code><a title="fuse.Operations.create" href="#fuse.Operations.create">create</a></code></li>
@@ -3638,7 +3750,6 @@ statvfs(3).</p>
 <li><code><a title="fuse.Operations.init" href="#fuse.Operations.init">init</a></code></li>
 <li><code><a title="fuse.Operations.link" href="#fuse.Operations.link">link</a></code></li>
 <li><code><a title="fuse.Operations.listxattr" href="#fuse.Operations.listxattr">listxattr</a></code></li>
-<li><code><a title="fuse.Operations.lock" href="#fuse.Operations.lock">lock</a></code></li>
 <li><code><a title="fuse.Operations.mkdir" href="#fuse.Operations.mkdir">mkdir</a></code></li>
 <li><code><a title="fuse.Operations.mknod" href="#fuse.Operations.mknod">mknod</a></code></li>
 <li><code><a title="fuse.Operations.open" href="#fuse.Operations.open">open</a></code></li>
@@ -3658,125 +3769,14 @@ statvfs(3).</p>
 <li><code><a title="fuse.Operations.unlink" href="#fuse.Operations.unlink">unlink</a></code></li>
 <li><code><a title="fuse.Operations.utimens" href="#fuse.Operations.utimens">utimens</a></code></li>
 <li><code><a title="fuse.Operations.write" href="#fuse.Operations.write">write</a></code></li>
+<li><code><a title="fuse.Operations.bmap" href="#fuse.Operations.bmap">bmap</a></code></li>
+<li><code><a title="fuse.Operations.lock" href="#fuse.Operations.lock">lock</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="fuse.c_stat" href="#fuse.c_stat">c_stat</a></code></h4>
-<ul class="two-column">
-<li><code><a title="fuse.c_stat.st_atimespec" href="#fuse.c_stat.st_atimespec">st_atimespec</a></code></li>
-<li><code><a title="fuse.c_stat.st_blksize" href="#fuse.c_stat.st_blksize">st_blksize</a></code></li>
-<li><code><a title="fuse.c_stat.st_blocks" href="#fuse.c_stat.st_blocks">st_blocks</a></code></li>
-<li><code><a title="fuse.c_stat.st_ctimespec" href="#fuse.c_stat.st_ctimespec">st_ctimespec</a></code></li>
-<li><code><a title="fuse.c_stat.st_dev" href="#fuse.c_stat.st_dev">st_dev</a></code></li>
-<li><code><a title="fuse.c_stat.st_gid" href="#fuse.c_stat.st_gid">st_gid</a></code></li>
-<li><code><a title="fuse.c_stat.st_ino" href="#fuse.c_stat.st_ino">st_ino</a></code></li>
-<li><code><a title="fuse.c_stat.st_mode" href="#fuse.c_stat.st_mode">st_mode</a></code></li>
-<li><code><a title="fuse.c_stat.st_mtimespec" href="#fuse.c_stat.st_mtimespec">st_mtimespec</a></code></li>
-<li><code><a title="fuse.c_stat.st_nlink" href="#fuse.c_stat.st_nlink">st_nlink</a></code></li>
-<li><code><a title="fuse.c_stat.st_rdev" href="#fuse.c_stat.st_rdev">st_rdev</a></code></li>
-<li><code><a title="fuse.c_stat.st_size" href="#fuse.c_stat.st_size">st_size</a></code></li>
-<li><code><a title="fuse.c_stat.st_uid" href="#fuse.c_stat.st_uid">st_uid</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="fuse.c_statvfs" href="#fuse.c_statvfs">c_statvfs</a></code></h4>
-<ul class="two-column">
-<li><code><a title="fuse.c_statvfs.f_bavail" href="#fuse.c_statvfs.f_bavail">f_bavail</a></code></li>
-<li><code><a title="fuse.c_statvfs.f_bfree" href="#fuse.c_statvfs.f_bfree">f_bfree</a></code></li>
-<li><code><a title="fuse.c_statvfs.f_blocks" href="#fuse.c_statvfs.f_blocks">f_blocks</a></code></li>
-<li><code><a title="fuse.c_statvfs.f_bsize" href="#fuse.c_statvfs.f_bsize">f_bsize</a></code></li>
-<li><code><a title="fuse.c_statvfs.f_favail" href="#fuse.c_statvfs.f_favail">f_favail</a></code></li>
-<li><code><a title="fuse.c_statvfs.f_ffree" href="#fuse.c_statvfs.f_ffree">f_ffree</a></code></li>
-<li><code><a title="fuse.c_statvfs.f_files" href="#fuse.c_statvfs.f_files">f_files</a></code></li>
-<li><code><a title="fuse.c_statvfs.f_flag" href="#fuse.c_statvfs.f_flag">f_flag</a></code></li>
-<li><code><a title="fuse.c_statvfs.f_frsize" href="#fuse.c_statvfs.f_frsize">f_frsize</a></code></li>
-<li><code><a title="fuse.c_statvfs.f_fsid" href="#fuse.c_statvfs.f_fsid">f_fsid</a></code></li>
-<li><code><a title="fuse.c_statvfs.f_namemax" href="#fuse.c_statvfs.f_namemax">f_namemax</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="fuse.c_timespec" href="#fuse.c_timespec">c_timespec</a></code></h4>
+<h4><code><a title="fuse.LoggingMixIn" href="#fuse.LoggingMixIn">LoggingMixIn</a></code></h4>
 <ul class="">
-<li><code><a title="fuse.c_timespec.tv_nsec" href="#fuse.c_timespec.tv_nsec">tv_nsec</a></code></li>
-<li><code><a title="fuse.c_timespec.tv_sec" href="#fuse.c_timespec.tv_sec">tv_sec</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="fuse.c_utimbuf" href="#fuse.c_utimbuf">c_utimbuf</a></code></h4>
-<ul class="">
-<li><code><a title="fuse.c_utimbuf.actime" href="#fuse.c_utimbuf.actime">actime</a></code></li>
-<li><code><a title="fuse.c_utimbuf.modtime" href="#fuse.c_utimbuf.modtime">modtime</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="fuse.fuse_context" href="#fuse.fuse_context">fuse_context</a></code></h4>
-<ul class="">
-<li><code><a title="fuse.fuse_context.fuse" href="#fuse.fuse_context.fuse">fuse</a></code></li>
-<li><code><a title="fuse.fuse_context.gid" href="#fuse.fuse_context.gid">gid</a></code></li>
-<li><code><a title="fuse.fuse_context.pid" href="#fuse.fuse_context.pid">pid</a></code></li>
-<li><code><a title="fuse.fuse_context.private_data" href="#fuse.fuse_context.private_data">private_data</a></code></li>
-<li><code><a title="fuse.fuse_context.uid" href="#fuse.fuse_context.uid">uid</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="fuse.fuse_file_info" href="#fuse.fuse_file_info">fuse_file_info</a></code></h4>
-<ul class="two-column">
-<li><code><a title="fuse.fuse_file_info.direct_io" href="#fuse.fuse_file_info.direct_io">direct_io</a></code></li>
-<li><code><a title="fuse.fuse_file_info.fh" href="#fuse.fuse_file_info.fh">fh</a></code></li>
-<li><code><a title="fuse.fuse_file_info.fh_old" href="#fuse.fuse_file_info.fh_old">fh_old</a></code></li>
-<li><code><a title="fuse.fuse_file_info.flags" href="#fuse.fuse_file_info.flags">flags</a></code></li>
-<li><code><a title="fuse.fuse_file_info.flush" href="#fuse.fuse_file_info.flush">flush</a></code></li>
-<li><code><a title="fuse.fuse_file_info.keep_cache" href="#fuse.fuse_file_info.keep_cache">keep_cache</a></code></li>
-<li><code><a title="fuse.fuse_file_info.lock_owner" href="#fuse.fuse_file_info.lock_owner">lock_owner</a></code></li>
-<li><code><a title="fuse.fuse_file_info.padding" href="#fuse.fuse_file_info.padding">padding</a></code></li>
-<li><code><a title="fuse.fuse_file_info.writepage" href="#fuse.fuse_file_info.writepage">writepage</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="fuse.fuse_operations" href="#fuse.fuse_operations">fuse_operations</a></code></h4>
-<ul class="two-column">
-<li><code><a title="fuse.fuse_operations.access" href="#fuse.fuse_operations.access">access</a></code></li>
-<li><code><a title="fuse.fuse_operations.bmap" href="#fuse.fuse_operations.bmap">bmap</a></code></li>
-<li><code><a title="fuse.fuse_operations.chmod" href="#fuse.fuse_operations.chmod">chmod</a></code></li>
-<li><code><a title="fuse.fuse_operations.chown" href="#fuse.fuse_operations.chown">chown</a></code></li>
-<li><code><a title="fuse.fuse_operations.create" href="#fuse.fuse_operations.create">create</a></code></li>
-<li><code><a title="fuse.fuse_operations.destroy" href="#fuse.fuse_operations.destroy">destroy</a></code></li>
-<li><code><a title="fuse.fuse_operations.fgetattr" href="#fuse.fuse_operations.fgetattr">fgetattr</a></code></li>
-<li><code><a title="fuse.fuse_operations.flag_nopath" href="#fuse.fuse_operations.flag_nopath">flag_nopath</a></code></li>
-<li><code><a title="fuse.fuse_operations.flag_nullpath_ok" href="#fuse.fuse_operations.flag_nullpath_ok">flag_nullpath_ok</a></code></li>
-<li><code><a title="fuse.fuse_operations.flag_reserved" href="#fuse.fuse_operations.flag_reserved">flag_reserved</a></code></li>
-<li><code><a title="fuse.fuse_operations.flag_utime_omit_ok" href="#fuse.fuse_operations.flag_utime_omit_ok">flag_utime_omit_ok</a></code></li>
-<li><code><a title="fuse.fuse_operations.flush" href="#fuse.fuse_operations.flush">flush</a></code></li>
-<li><code><a title="fuse.fuse_operations.fsync" href="#fuse.fuse_operations.fsync">fsync</a></code></li>
-<li><code><a title="fuse.fuse_operations.fsyncdir" href="#fuse.fuse_operations.fsyncdir">fsyncdir</a></code></li>
-<li><code><a title="fuse.fuse_operations.ftruncate" href="#fuse.fuse_operations.ftruncate">ftruncate</a></code></li>
-<li><code><a title="fuse.fuse_operations.getattr" href="#fuse.fuse_operations.getattr">getattr</a></code></li>
-<li><code><a title="fuse.fuse_operations.getdir" href="#fuse.fuse_operations.getdir">getdir</a></code></li>
-<li><code><a title="fuse.fuse_operations.getxattr" href="#fuse.fuse_operations.getxattr">getxattr</a></code></li>
-<li><code><a title="fuse.fuse_operations.init" href="#fuse.fuse_operations.init">init</a></code></li>
-<li><code><a title="fuse.fuse_operations.link" href="#fuse.fuse_operations.link">link</a></code></li>
-<li><code><a title="fuse.fuse_operations.listxattr" href="#fuse.fuse_operations.listxattr">listxattr</a></code></li>
-<li><code><a title="fuse.fuse_operations.lock" href="#fuse.fuse_operations.lock">lock</a></code></li>
-<li><code><a title="fuse.fuse_operations.mkdir" href="#fuse.fuse_operations.mkdir">mkdir</a></code></li>
-<li><code><a title="fuse.fuse_operations.mknod" href="#fuse.fuse_operations.mknod">mknod</a></code></li>
-<li><code><a title="fuse.fuse_operations.open" href="#fuse.fuse_operations.open">open</a></code></li>
-<li><code><a title="fuse.fuse_operations.opendir" href="#fuse.fuse_operations.opendir">opendir</a></code></li>
-<li><code><a title="fuse.fuse_operations.read" href="#fuse.fuse_operations.read">read</a></code></li>
-<li><code><a title="fuse.fuse_operations.readdir" href="#fuse.fuse_operations.readdir">readdir</a></code></li>
-<li><code><a title="fuse.fuse_operations.readlink" href="#fuse.fuse_operations.readlink">readlink</a></code></li>
-<li><code><a title="fuse.fuse_operations.release" href="#fuse.fuse_operations.release">release</a></code></li>
-<li><code><a title="fuse.fuse_operations.releasedir" href="#fuse.fuse_operations.releasedir">releasedir</a></code></li>
-<li><code><a title="fuse.fuse_operations.removexattr" href="#fuse.fuse_operations.removexattr">removexattr</a></code></li>
-<li><code><a title="fuse.fuse_operations.rename" href="#fuse.fuse_operations.rename">rename</a></code></li>
-<li><code><a title="fuse.fuse_operations.rmdir" href="#fuse.fuse_operations.rmdir">rmdir</a></code></li>
-<li><code><a title="fuse.fuse_operations.setxattr" href="#fuse.fuse_operations.setxattr">setxattr</a></code></li>
-<li><code><a title="fuse.fuse_operations.statfs" href="#fuse.fuse_operations.statfs">statfs</a></code></li>
-<li><code><a title="fuse.fuse_operations.symlink" href="#fuse.fuse_operations.symlink">symlink</a></code></li>
-<li><code><a title="fuse.fuse_operations.truncate" href="#fuse.fuse_operations.truncate">truncate</a></code></li>
-<li><code><a title="fuse.fuse_operations.unlink" href="#fuse.fuse_operations.unlink">unlink</a></code></li>
-<li><code><a title="fuse.fuse_operations.utime" href="#fuse.fuse_operations.utime">utime</a></code></li>
-<li><code><a title="fuse.fuse_operations.utimens" href="#fuse.fuse_operations.utimens">utimens</a></code></li>
-<li><code><a title="fuse.fuse_operations.write" href="#fuse.fuse_operations.write">write</a></code></li>
+<li><code><a title="fuse.LoggingMixIn.log" href="#fuse.LoggingMixIn.log">log</a></code></li>
 </ul>
 </li>
 </ul>

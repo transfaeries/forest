@@ -165,6 +165,33 @@ async def get_url(port: int = 8080) -&gt; AsyncIterator[str]:
     return True</code></pre>
 </details>
 </dd>
+<dt id="utils.load_secrets"><code class="name flex">
+<span>def <span class="ident">load_secrets</span></span>(<span>env: Optional[str] = None, overwrite: bool = False) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_secrets(env: Optional[str] = None, overwrite: bool = False) -&gt; None:
+    if not env:
+        env = os.environ.get(&#34;ENV&#34;, &#34;dev&#34;)
+    try:
+        logging.info(&#34;loading secrets from %s_secrets&#34;, env)
+        secrets = [line.strip().split(&#34;=&#34;, 1) for line in open(f&#34;{env}_secrets&#34;)]
+        can_be_a_dict = cast(list[tuple[str, str]], secrets)
+        if overwrite:
+            new_env = dict(can_be_a_dict)
+        else:
+            new_env = (
+                dict(can_be_a_dict) | os.environ
+            )  # mask loaded secrets with existing env
+        os.environ.update(new_env)
+    except FileNotFoundError:
+        pass</code></pre>
+</details>
+</dd>
 <dt id="utils.get_secret"><code class="name flex">
 <span>def <span class="ident">get_secret</span></span>(<span>key: str, env: Optional[str] = None) ‑> str</span>
 </code></dt>
@@ -180,6 +207,22 @@ async def get_url(port: int = 8080) -&gt; AsyncIterator[str]:
     except KeyError:
         load_secrets(env)
         return os.environ.get(key) or &#34;&#34;  # fixme</code></pre>
+</details>
+</dd>
+<dt id="utils.signal_format"><code class="name flex">
+<span>def <span class="ident">signal_format</span></span>(<span>raw_number: str) ‑> Optional[str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def signal_format(raw_number: str) -&gt; Optional[str]:
+    try:
+        return pn.format_number(pn.parse(raw_number, &#34;US&#34;), pn.PhoneNumberFormat.E164)
+    except NumberParseException:
+        return None</code></pre>
 </details>
 </dd>
 <dt id="utils.get_url"><code class="name flex">
@@ -209,49 +252,6 @@ async def get_url(port: int = 8080) -&gt; AsyncIterator[str]:
             tunnel.terminate()
     else:
         yield APP_NAME + &#34;.fly.io&#34;</code></pre>
-</details>
-</dd>
-<dt id="utils.load_secrets"><code class="name flex">
-<span>def <span class="ident">load_secrets</span></span>(<span>env: Optional[str] = None, overwrite: bool = False) ‑> None</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def load_secrets(env: Optional[str] = None, overwrite: bool = False) -&gt; None:
-    if not env:
-        env = os.environ.get(&#34;ENV&#34;, &#34;dev&#34;)
-    try:
-        logging.info(&#34;loading secrets from %s_secrets&#34;, env)
-        secrets = [line.strip().split(&#34;=&#34;, 1) for line in open(f&#34;{env}_secrets&#34;)]
-        can_be_a_dict = cast(list[tuple[str, str]], secrets)
-        if overwrite:
-            new_env = dict(can_be_a_dict)
-        else:
-            new_env = (
-                dict(can_be_a_dict) | os.environ
-            )  # mask loaded secrets with existing env
-        os.environ.update(new_env)
-    except FileNotFoundError:
-        pass</code></pre>
-</details>
-</dd>
-<dt id="utils.signal_format"><code class="name flex">
-<span>def <span class="ident">signal_format</span></span>(<span>raw_number: str) ‑> Optional[str]</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def signal_format(raw_number: str) -&gt; Optional[str]:
-    try:
-        return pn.format_number(pn.parse(raw_number, &#34;US&#34;), pn.PhoneNumberFormat.E164)
-    except NumberParseException:
-        return None</code></pre>
 </details>
 </dd>
 </dl>
@@ -320,10 +320,10 @@ There is no arbitrary limit to the depth of nesting.</p>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="utils.FuckAiohttp" href="#utils.FuckAiohttp">FuckAiohttp</a></code></li>
-<li><code><a title="utils.get_secret" href="#utils.get_secret">get_secret</a></code></li>
-<li><code><a title="utils.get_url" href="#utils.get_url">get_url</a></code></li>
 <li><code><a title="utils.load_secrets" href="#utils.load_secrets">load_secrets</a></code></li>
+<li><code><a title="utils.get_secret" href="#utils.get_secret">get_secret</a></code></li>
 <li><code><a title="utils.signal_format" href="#utils.signal_format">signal_format</a></code></li>
+<li><code><a title="utils.get_url" href="#utils.get_url">get_url</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

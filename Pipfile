@@ -28,3 +28,6 @@ pylint = "*"
 isort = "*"
 black = "*"
 
+[scripts]
+gendocs = "pdoc --config sort_identifiers=False --force --html -o docs forest/*"
+genindex = "'./docs/gen_index.sh $PWD/docs/ /forest-draft/ forestcontact.github.io' | grep -v __init__ > ./docs/index.html"

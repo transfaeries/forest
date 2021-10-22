@@ -471,8 +471,8 @@ FROM {self.table} WHERE account=$1', 'exists': "SELECT * FROM pg_tables WHERE ta
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="payments_monitor.Mobster.create_invoice"><code class="name flex">
-<span>async def <span class="ident">create_invoice</span></span>(<span>self, amount_usd: float, account: str, memo: str) ‑> float</span>
+<dt id="payments_monitor.Mobster.req"><code class="name flex">
+<span>async def <span class="ident">req</span></span>(<span>self, data: dict) ‑> dict</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -480,46 +480,15 @@ FROM {self.table} WHERE account=$1', 'exists': "SELECT * FROM pg_tables WHERE ta
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">async def create_invoice(self, amount_usd: float, account: str, memo: str) -&gt; float:
-    while 1:
-        try:
-            mob_price_exact = await self.usd2mob(amount_usd, perturb=True)
-            await self.invoice_manager.create_invoice(
-                account, mc_util.mob2pmob(mob_price_exact), memo
-            )
-            return mob_price_exact
-        except asyncpg.UniqueViolationError:
-            pass</code></pre>
-</details>
-</dd>
-<dt id="payments_monitor.Mobster.get_account"><code class="name flex">
-<span>async def <span class="ident">get_account</span></span>(<span>self) ‑> str</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def get_account(self) -&gt; str:
-    return (await self.req({&#34;method&#34;: &#34;get_all_accounts&#34;}))[&#34;result&#34;][
-        &#34;account_ids&#34;
-    ][0]</code></pre>
-</details>
-</dd>
-<dt id="payments_monitor.Mobster.get_address"><code class="name flex">
-<span>async def <span class="ident">get_address</span></span>(<span>self) ‑> str</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def get_address(self) -&gt; str:
-    res = await self.req({&#34;method&#34;: &#34;get_all_accounts&#34;})
-    acc_id = res[&#34;result&#34;][&#34;account_ids&#34;][0]
-    return res[&#34;result&#34;][&#34;account_map&#34;][acc_id][&#34;main_address&#34;]</code></pre>
+<pre><code class="python">async def req(self, data: dict) -&gt; dict:
+    better_data = {&#34;jsonrpc&#34;: &#34;2.0&#34;, &#34;id&#34;: 1, **data}
+    mob_req = self.session.post(
+        &#34;http://full-service.fly.dev/wallet&#34;,
+        data=json.dumps(better_data),
+        headers={&#34;Content-Type&#34;: &#34;application/json&#34;},
+    )
+    async with mob_req as resp:
+        return await resp.json()</code></pre>
 </details>
 </dd>
 <dt id="payments_monitor.Mobster.get_rate"><code class="name flex">
@@ -554,6 +523,97 @@ FROM {self.table} WHERE account=$1', 'exists': "SELECT * FROM pg_tables WHERE ta
     return mob_rate</code></pre>
 </details>
 </dd>
+<dt id="payments_monitor.Mobster.pmob2usd"><code class="name flex">
+<span>async def <span class="ident">pmob2usd</span></span>(<span>self, pmob: int) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def pmob2usd(self, pmob: int) -&gt; float:
+    return mc_util.pmob2mob(pmob) * await self.get_rate()</code></pre>
+</details>
+</dd>
+<dt id="payments_monitor.Mobster.usd2mob"><code class="name flex">
+<span>async def <span class="ident">usd2mob</span></span>(<span>self, usd: float, perturb: bool = False) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def usd2mob(self, usd: float, perturb: bool = False) -&gt; float:
+    invnano = 100000000
+    # invpico = 100000000000 # doesn&#39;t work in mixin
+    mob_rate = await self.get_rate()
+    if perturb:
+        # perturb each price slightly to have a unique payment
+        mob_rate -= random.random() / 1000
+    mob_amount = usd / mob_rate
+    if perturb:
+        return round(mob_amount, 8)
+    return round(mob_amount, 3)  # maybe ceil?</code></pre>
+</details>
+</dd>
+<dt id="payments_monitor.Mobster.create_invoice"><code class="name flex">
+<span>async def <span class="ident">create_invoice</span></span>(<span>self, amount_usd: float, account: str, memo: str) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def create_invoice(self, amount_usd: float, account: str, memo: str) -&gt; float:
+    while 1:
+        try:
+            mob_price_exact = await self.usd2mob(amount_usd, perturb=True)
+            await self.invoice_manager.create_invoice(
+                account, mc_util.mob2pmob(mob_price_exact), memo
+            )
+            return mob_price_exact
+        except asyncpg.UniqueViolationError:
+            pass</code></pre>
+</details>
+</dd>
+<dt id="payments_monitor.Mobster.import_account"><code class="name flex">
+<span>async def <span class="ident">import_account</span></span>(<span>self) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def import_account(self) -&gt; dict:
+    params = {
+        &#34;mnemonic&#34;: utils.get_secret(&#34;MNEMONIC&#34;),
+        &#34;key_derivation_version&#34;: &#34;2&#34;,
+        &#34;name&#34;: &#34;falloopa&#34;,
+        &#34;next_subaddress_index&#34;: &#34;2&#34;,
+        &#34;first_block_index&#34;: &#34;3500&#34;,
+    }
+    return await self.req({&#34;method&#34;: &#34;import_account&#34;, &#34;params&#34;: params})</code></pre>
+</details>
+</dd>
+<dt id="payments_monitor.Mobster.get_address"><code class="name flex">
+<span>async def <span class="ident">get_address</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def get_address(self) -&gt; str:
+    res = await self.req({&#34;method&#34;: &#34;get_all_accounts&#34;})
+    acc_id = res[&#34;result&#34;][&#34;account_ids&#34;][0]
+    return res[&#34;result&#34;][&#34;account_map&#34;][acc_id][&#34;main_address&#34;]</code></pre>
+</details>
+</dd>
 <dt id="payments_monitor.Mobster.get_receipt_amount_pmob"><code class="name flex">
 <span>async def <span class="ident">get_receipt_amount_pmob</span></span>(<span>self, receipt_str: str) ‑> Optional[float]</span>
 </code></dt>
@@ -580,6 +640,21 @@ FROM {self.table} WHERE account=$1', 'exists': "SELECT * FROM pg_tables WHERE ta
     return pmob</code></pre>
 </details>
 </dd>
+<dt id="payments_monitor.Mobster.get_account"><code class="name flex">
+<span>async def <span class="ident">get_account</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def get_account(self) -&gt; str:
+    return (await self.req({&#34;method&#34;: &#34;get_all_accounts&#34;}))[&#34;result&#34;][
+        &#34;account_ids&#34;
+    ][0]</code></pre>
+</details>
+</dd>
 <dt id="payments_monitor.Mobster.get_transactions"><code class="name flex">
 <span>async def <span class="ident">get_transactions</span></span>(<span>self, account_id: str) ‑> dict</span>
 </code></dt>
@@ -598,26 +673,6 @@ FROM {self.table} WHERE account=$1', 'exists': "SELECT * FROM pg_tables WHERE ta
             }
         )
     )[&#34;result&#34;][&#34;transaction_log_map&#34;]</code></pre>
-</details>
-</dd>
-<dt id="payments_monitor.Mobster.import_account"><code class="name flex">
-<span>async def <span class="ident">import_account</span></span>(<span>self) ‑> dict</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def import_account(self) -&gt; dict:
-    params = {
-        &#34;mnemonic&#34;: utils.get_secret(&#34;MNEMONIC&#34;),
-        &#34;key_derivation_version&#34;: &#34;2&#34;,
-        &#34;name&#34;: &#34;falloopa&#34;,
-        &#34;next_subaddress_index&#34;: &#34;2&#34;,
-        &#34;first_block_index&#34;: &#34;3500&#34;,
-    }
-    return await self.req({&#34;method&#34;: &#34;import_account&#34;, &#34;params&#34;: params})</code></pre>
 </details>
 </dd>
 <dt id="payments_monitor.Mobster.monitor_wallet"><code class="name flex">
@@ -664,61 +719,6 @@ FROM {self.table} WHERE account=$1', 'exists': "SELECT * FROM pg_tables WHERE ta
         await asyncio.sleep(10)</code></pre>
 </details>
 </dd>
-<dt id="payments_monitor.Mobster.pmob2usd"><code class="name flex">
-<span>async def <span class="ident">pmob2usd</span></span>(<span>self, pmob: int) ‑> float</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def pmob2usd(self, pmob: int) -&gt; float:
-    return mc_util.pmob2mob(pmob) * await self.get_rate()</code></pre>
-</details>
-</dd>
-<dt id="payments_monitor.Mobster.req"><code class="name flex">
-<span>async def <span class="ident">req</span></span>(<span>self, data: dict) ‑> dict</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def req(self, data: dict) -&gt; dict:
-    better_data = {&#34;jsonrpc&#34;: &#34;2.0&#34;, &#34;id&#34;: 1, **data}
-    mob_req = self.session.post(
-        &#34;http://full-service.fly.dev/wallet&#34;,
-        data=json.dumps(better_data),
-        headers={&#34;Content-Type&#34;: &#34;application/json&#34;},
-    )
-    async with mob_req as resp:
-        return await resp.json()</code></pre>
-</details>
-</dd>
-<dt id="payments_monitor.Mobster.usd2mob"><code class="name flex">
-<span>async def <span class="ident">usd2mob</span></span>(<span>self, usd: float, perturb: bool = False) ‑> float</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def usd2mob(self, usd: float, perturb: bool = False) -&gt; float:
-    invnano = 100000000
-    # invpico = 100000000000 # doesn&#39;t work in mixin
-    mob_rate = await self.get_rate()
-    if perturb:
-        # perturb each price slightly to have a unique payment
-        mob_rate -= random.random() / 1000
-    mob_amount = usd / mob_rate
-    if perturb:
-        return round(mob_amount, 8)
-    return round(mob_amount, 3)  # maybe ceil?</code></pre>
-</details>
-</dd>
 </dl>
 </dd>
 </dl>
@@ -741,18 +741,18 @@ FROM {self.table} WHERE account=$1', 'exists': "SELECT * FROM pg_tables WHERE ta
 <li>
 <h4><code><a title="payments_monitor.Mobster" href="#payments_monitor.Mobster">Mobster</a></code></h4>
 <ul class="">
-<li><code><a title="payments_monitor.Mobster.create_invoice" href="#payments_monitor.Mobster.create_invoice">create_invoice</a></code></li>
-<li><code><a title="payments_monitor.Mobster.get_account" href="#payments_monitor.Mobster.get_account">get_account</a></code></li>
-<li><code><a title="payments_monitor.Mobster.get_address" href="#payments_monitor.Mobster.get_address">get_address</a></code></li>
-<li><code><a title="payments_monitor.Mobster.get_rate" href="#payments_monitor.Mobster.get_rate">get_rate</a></code></li>
-<li><code><a title="payments_monitor.Mobster.get_receipt_amount_pmob" href="#payments_monitor.Mobster.get_receipt_amount_pmob">get_receipt_amount_pmob</a></code></li>
-<li><code><a title="payments_monitor.Mobster.get_transactions" href="#payments_monitor.Mobster.get_transactions">get_transactions</a></code></li>
-<li><code><a title="payments_monitor.Mobster.import_account" href="#payments_monitor.Mobster.import_account">import_account</a></code></li>
-<li><code><a title="payments_monitor.Mobster.monitor_wallet" href="#payments_monitor.Mobster.monitor_wallet">monitor_wallet</a></code></li>
-<li><code><a title="payments_monitor.Mobster.pmob2usd" href="#payments_monitor.Mobster.pmob2usd">pmob2usd</a></code></li>
-<li><code><a title="payments_monitor.Mobster.rate_cache" href="#payments_monitor.Mobster.rate_cache">rate_cache</a></code></li>
 <li><code><a title="payments_monitor.Mobster.req" href="#payments_monitor.Mobster.req">req</a></code></li>
+<li><code><a title="payments_monitor.Mobster.get_rate" href="#payments_monitor.Mobster.get_rate">get_rate</a></code></li>
+<li><code><a title="payments_monitor.Mobster.pmob2usd" href="#payments_monitor.Mobster.pmob2usd">pmob2usd</a></code></li>
 <li><code><a title="payments_monitor.Mobster.usd2mob" href="#payments_monitor.Mobster.usd2mob">usd2mob</a></code></li>
+<li><code><a title="payments_monitor.Mobster.create_invoice" href="#payments_monitor.Mobster.create_invoice">create_invoice</a></code></li>
+<li><code><a title="payments_monitor.Mobster.import_account" href="#payments_monitor.Mobster.import_account">import_account</a></code></li>
+<li><code><a title="payments_monitor.Mobster.get_address" href="#payments_monitor.Mobster.get_address">get_address</a></code></li>
+<li><code><a title="payments_monitor.Mobster.get_receipt_amount_pmob" href="#payments_monitor.Mobster.get_receipt_amount_pmob">get_receipt_amount_pmob</a></code></li>
+<li><code><a title="payments_monitor.Mobster.get_account" href="#payments_monitor.Mobster.get_account">get_account</a></code></li>
+<li><code><a title="payments_monitor.Mobster.get_transactions" href="#payments_monitor.Mobster.get_transactions">get_transactions</a></code></li>
+<li><code><a title="payments_monitor.Mobster.monitor_wallet" href="#payments_monitor.Mobster.monitor_wallet">monitor_wallet</a></code></li>
+<li><code><a title="payments_monitor.Mobster.rate_cache" href="#payments_monitor.Mobster.rate_cache">rate_cache</a></code></li>
 </ul>
 </li>
 </ul>

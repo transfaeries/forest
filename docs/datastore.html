@@ -1,0 +1,1109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>datastore API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>datastore</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/bin/python3.9
+import argparse
+import asyncio
+import json
+import logging
+import os
+import shutil
+import time
+from io import BytesIO
+from pathlib import Path
+from subprocess import PIPE, Popen
+from tarfile import TarFile
+from typing import Any, Optional, Callable, cast
+
+import aioprocessing
+from aiohttp import web
+
+from forest import utils
+from forest import fuse
+from forest import mem
+from forest.pghelp import PGExpressions, PGInterface
+
+if utils.get_secret(&#34;MIGRATE&#34;):
+    get_datastore = &#34;SELECT account, datastore FROM {self.table} WHERE id=$1&#34;
+else:
+    get_datastore = &#34;SELECT datastore FROM {self.table} WHERE id=$1&#34;
+
+
+class DatastoreError(Exception):
+    pass
+
+
+AccountPGExpressions = PGExpressions(
+    table=&#34;signal_accounts&#34;,
+    # rename=&#34;ALTAR TABLE IF EXISTS prod_users RENAME TO {self.table}&#34;,
+    migrate=&#34;ALTER TABLE IF EXISTS {self.table} ADD IF NOT EXISTS datastore BYTEA, notes TEXT&#34;,
+    create_table=&#34;CREATE TABLE IF NOT EXISTS {self.table} \
+            (id TEXT PRIMARY KEY, \
+            datastore BYTEA, \
+            last_update_ms BIGINT, \
+            last_claim_ms BIGINT, \
+            active_node_name TEXT, \
+            notes TEXT);&#34;,
+    is_registered=&#34;SELECT datastore is not null as registered FROM {self.table} WHERE id=$1&#34;,
+    get_datastore=get_datastore,
+    get_claim=&#34;SELECT active_node_name FROM {self.table} WHERE id=$1&#34;,
+    mark_account_claimed=&#34;UPDATE {self.table} \
+        SET active_node_name = $2, \
+        last_claim_ms = (extract(epoch from now()) * 1000) \
+        WHERE id=$1;&#34;,
+    mark_account_freed=&#34;UPDATE {self.table} SET last_claim_ms = 0, \
+        active_node_name = NULL WHERE id=$1;&#34;,
+    get_free_account=&#34;SELECT (id, datastore) FROM {self.table} \
+            WHERE active_node_name IS NULL \
+            AND last_claim_ms = 0 \
+            LIMIT 1;&#34;,
+    upload=&#34;INSERT INTO {self.table} (id, datastore, last_update_ms) \
+            VALUES($1, $2, (extract(epoch from now()) * 1000)) \
+            ON CONFLICT (id) DO UPDATE SET \
+            datastore = $2, last_update_ms = EXCLUDED.last_update_ms;&#34;,
+    free_accounts_not_updated_in_the_last_hour=&#34;UPDATE {self.table} \
+            SET last_claim_ms = 0, active_node_name = NULL \
+            WHERE last_update_ms &lt; ((extract(epoch from now())-3600) * 1000);&#34;,
+    get_timestamp=&#34;select last_update_ms from {self.table} where id=$1&#34;,
+)
+
+
+def get_account_interface() -&gt; PGInterface:
+    return PGInterface(
+        query_strings=AccountPGExpressions,
+        database=utils.get_secret(&#34;DATABASE_URL&#34;),
+    )
+
+
+class SignalDatastore:
+    &#34;&#34;&#34;
+    Download, claim, mount, and sync a signal datastore
+    &#34;&#34;&#34;
+
+    def __init__(self, number: str):
+        self.account_interface = get_account_interface()
+        formatted_number = utils.signal_format(number)
+        if isinstance(formatted_number, str):
+            self.number: str = formatted_number
+        else:
+            raise Exception(&#34;not a valid number&#34;)
+        logging.info(&#34;SignalDatastore number is %s&#34;, self.number)
+        self.filepath = &#34;data/&#34; + number
+        # await self.account_interface.create_table()
+
+    def is_registered_locally(self) -&gt; bool:
+        try:
+            return json.load(open(self.filepath))[&#34;registered&#34;]
+        except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+            logging.error(e)
+            return False
+
+    async def is_claimed(self) -&gt; Optional[str]:
+        record = await self.account_interface.get_claim(self.number)
+        if not record:
+            logging.warning(&#34;checking claim without plus instead&#34;)
+            record = await self.account_interface.get_claim(self.number[1:])
+            if record:
+                return record[0].get(&#34;active_node_name&#34;)
+            raise Exception(f&#34;no record in db for {self.number}&#34;)
+        return record[0].get(&#34;active_node_name&#34;)
+
+    async def download(self) -&gt; None:
+        &#34;&#34;&#34;Fetch our account datastore from postgresql and mark it claimed&#34;&#34;&#34;
+        logging.info(&#34;datastore download entered&#34;)
+        await self.account_interface.free_accounts_not_updated_in_the_last_hour()
+        for i in range(5):
+            logging.info(&#34;checking claim&#34;)
+            claim = await self.is_claimed()
+            if not claim:
+                logging.info(&#34;no account claim!&#34;)
+                break
+            # you can also try to kill the other process
+            logging.info(
+                &#34;this account is claimed by %s, waiting&#34;,
+                claim,
+            )
+            await asyncio.sleep(6)
+            if i == 4:
+                logging.info(&#34;time&#39;s up&#34;)
+        logging.info(&#34;downloading&#34;)
+        record = await self.account_interface.get_datastore(self.number)
+        if not record and utils.get_secret(&#34;MIGRATE&#34;):
+            logging.warning(&#34;trying without plus&#34;)
+            record = await self.account_interface.get_datastore(
+                self.number.removeprefix(&#34;+&#34;)
+            )
+        logging.info(&#34;got datastore from pg&#34;)
+        if json_data := record[0].get(&#34;account&#34;):
+            # legacy json-only field
+            loaded_data = json.loads(json_data)
+            if &#34;username&#34; in loaded_data:
+                try:
+                    os.mkdir(&#34;data&#34;)
+                except FileExistsError:
+                    pass
+                open(&#34;data/&#34; + loaded_data[&#34;username&#34;], &#34;w&#34;).write(json_data)
+                return
+        buffer = BytesIO(record[0].get(&#34;datastore&#34;))
+        tarball = TarFile(fileobj=buffer)
+        fnames = [member.name for member in tarball.getmembers()]
+        logging.debug(fnames[:2])
+        logging.info(
+            &#34;expected file %s exists: %s&#34;,
+            self.filepath,
+            self.filepath in fnames,
+        )
+        tarball.extractall(utils.ROOT_DIR)
+        # open(&#34;last_downloaded_checksum&#34;, &#34;w&#34;).write(zlib.crc32(buffer.seek(0).read()))
+        await self.account_interface.mark_account_claimed(self.number, utils.HOSTNAME)
+        logging.debug(&#34;marked account as claimed, asserting that this is the case&#34;)
+        assert await self.is_claimed()
+        return
+
+    def tarball_data(self) -&gt; Optional[bytes]:
+        &#34;&#34;&#34;Tarball our data files&#34;&#34;&#34;
+        if not self.is_registered_locally():
+            logging.error(&#34;datastore not registered. not uploading&#34;)
+            return None
+        # fixme: check if the last thing we downloaded/uploaded
+        # is older than the last thing in the db
+        buffer = BytesIO()
+        tarball = TarFile(fileobj=buffer, mode=&#34;w&#34;)
+        try:
+            tarball.add(self.filepath)
+            try:
+                tarball.add(self.filepath + &#34;.d&#34;)
+            except FileNotFoundError:
+                logging.info(&#34;ignoring no %s&#34;, self.filepath + &#34;.d&#34;)
+        except FileNotFoundError:
+            logging.warning(
+                &#34;couldn&#39;t find %s in %s, adding data instead&#34;,
+                self.filepath + &#34;.d&#34;,
+                os.getcwd(),
+            )
+            tarball.add(&#34;data&#34;)
+        fnames = [member.name for member in tarball.getmembers()]
+        logging.debug(fnames[:2])
+        tarball.close()
+        buffer.seek(0)
+        data = buffer.read()
+        return data
+
+    async def upload(self) -&gt; Any:
+        &#34;&#34;&#34;Puts account datastore in postgresql.&#34;&#34;&#34;
+        data = self.tarball_data()
+        if not data:
+            return
+        kb = round(len(data) / 1024, 1)
+        # maybe something like:
+        # upload and return registered timestamp. write timestamp locally. when uploading, check that the last_updated_ts in postgres matches the file
+        # if it doesn&#39;t, you&#39;ve probably diverged, but someone may have put an invalid ratchet more recently by mistake (e.g. restarting triggering upload despite crashing)
+        # or:
+        # open(&#34;last_uploaded_checksum&#34;, &#34;w&#34;).write(zlib.crc32(buffer.seek(0).read()))
+        await self.account_interface.upload(self.number, data)
+        logging.debug(&#34;saved %s kb of tarballed datastore to supabase&#34;, kb)
+        return
+
+    async def mark_freed(self) -&gt; list:
+        &#34;&#34;&#34;Marks account as freed in PG database.&#34;&#34;&#34;
+        return await self.account_interface.mark_account_freed(self.number)
+
+
+async def getFreeSignalDatastore() -&gt; SignalDatastore:
+    interface = get_account_interface()
+    await interface.free_accounts_not_updated_in_the_last_hour()
+    record = await interface.get_free_account()
+    if not record:
+        raise Exception(&#34;no free accounts&#34;)
+        # alternatively, register an account...
+    number = record[0].get(&#34;id&#34;)
+    logging.info(number)
+    assert number
+    return SignalDatastore(number)
+
+
+_memfs_process = None
+
+
+async def start_memfs(app: web.Application) -&gt; None:
+    &#34;&#34;&#34;
+    mount a filesystem in userspace to store data
+    the fs contents are stored in memory, so that our keys never touch a disk
+    this means we can log signal-cli&#39;s interactions with fs,
+    and store them in mem_queue.
+    if running locally, chdir to /tmp/local-signal with symlinks instead
+    &#34;&#34;&#34;
+    # refactor this whole mess into some sort of more general &#34;figure out where we are before downloading&#34;
+    if utils.LOCAL:
+        if utils.ROOT_DIR == &#34;.&#34;:
+            logging.warning(&#34;not deleting current dir, so not starting memfs&#34;)
+            return
+        try:
+            shutil.rmtree(utils.ROOT_DIR)
+        except (FileNotFoundError, OSError) as e:
+            logging.warning(&#34;couldn&#39;t remove rootdir: %s&#34;, e)
+        os.mkdir(utils.ROOT_DIR)
+        os.mkdir(utils.ROOT_DIR + &#34;/data&#34;)
+        # we&#39;re going to be running in the repo
+        sigcli = utils.get_secret(&#34;SIGNAL_CLI_PATH&#34;) or &#34;signal-cli&#34;
+        sigcli_path = Path(sigcli).absolute()
+        logging.info(&#34;symlinking %s to %s&#34;, sigcli_path, utils.ROOT_DIR)
+        os.symlink(sigcli_path, utils.ROOT_DIR + &#34;/signal-cli&#34;)
+        os.symlink(Path(&#34;avatar.png&#34;).absolute(), utils.ROOT_DIR + &#34;/avatar.png&#34;)
+        logging.info(&#34;chdir to %s&#34;, utils.ROOT_DIR)
+        os.chdir(utils.ROOT_DIR)
+        logging.info(&#34;not starting memfs because running locally&#34;)
+        return
+    logging.info(&#34;starting memfs&#34;)
+    app[&#34;mem_queue&#34;] = mem_queue = aioprocessing.AioQueue()
+    if not os.path.exists(&#34;/dev/fuse&#34;):
+        # you *must* have fuse already loaded if running locally
+        proc = Popen(
+            [&#34;/usr/sbin/insmod&#34;, &#34;/app/fuse.ko&#34;],
+            stdout=PIPE,
+            stderr=PIPE,
+        )
+        proc.wait()
+        (stdout, stderr) = proc.communicate()  # pylint: disable=unused-variable
+        if stderr:
+            raise Exception(
+                f&#34;Could not load fuse module! You may need to recompile.\t\n{stderr.decode()}&#34;
+            )
+
+    def memfs_proc(path: str = &#34;data&#34;) -&gt; Any:
+        &#34;&#34;&#34;Start the memfs process&#34;&#34;&#34;
+        pid = os.getpid()
+        open(&#34;/dev/stdout&#34;, &#34;w&#34;).write(
+            f&#34;Starting memfs with PID: {pid} on dir: {path}\n&#34;
+        )
+        backend = mem.Memory(logqueue=mem_queue)  # type: ignore
+        logging.info(&#34;initing FUSE&#34;)
+        return fuse.FUSE(operations=backend, mountpoint=utils.ROOT_DIR + &#34;/data&#34;)  # type: ignore
+
+    async def launch() -&gt; None:
+        logging.info(&#34;about to launch memfs with aioprocessing&#34;)
+        memfs = aioprocessing.AioProcess(target=memfs_proc)
+        memfs.start()  # pylint: disable=no-member
+        app[&#34;memfs&#34;] = memfs
+        _memfs_process = memfs
+
+    logging.info(&#34;awaiting launch func&#34;)
+    await launch()
+
+
+# input, operation, path, arguments, caller
+# [&#34;-&gt;&#34;, &#34;fsync&#34;, &#34;/+14703226669&#34;, &#34;(1, 2)&#34;, &#34;/app/signal-cli&#34;, [&#34;/app/signal-cli&#34;, &#34;--config&#34;, &#34;/app&#34;, &#34;--username=+14703226669&#34;, &#34;--output=json&#34;, &#34;stdio&#34;, &#34;&#34;], 0, 0, 523]
+# [&#34;&lt;-&#34;, &#34;fsync&#34;, &#34;0&#34;]
+async def start_memfs_monitor(app: web.Application) -&gt; None:
+    &#34;&#34;&#34;
+    monitor the memfs activity queue for file saves, sync with supabase
+    &#34;&#34;&#34;
+
+    async def upload_after_signalcli_writes() -&gt; None:
+        queue = app.get(&#34;mem_queue&#34;)
+        if not queue:
+            logging.info(&#34;no mem_queue, nothing to monitor&#34;)
+            return
+        logging.info(&#34;monitoring memfs&#34;)
+        counter = 0
+        while True:
+            queue_item = await queue.coro_get()
+            # iff fsync triggered by signal-cli
+            if (
+                queue_item[0:2] == [&#34;-&gt;&#34;, &#34;fsync&#34;]
+                and queue_item[5][0] == utils.ROOT_DIR + &#34;/signal-cli&#34;
+            ):
+                # /+14703226669
+                # file_to_sync = queue_item[2]
+                # 14703226669
+                maybe_session = app.get(&#34;session&#34;)
+                if maybe_session:
+                    counter += 1
+                    if time.time() % (60 * 3) == 0:
+                        logging.info(&#34;background syncs in the past ~3min: %s&#34;, counter)
+                        counter = 0
+                    await maybe_session.datastore.upload()
+
+    app[&#34;mem_task&#34;] = asyncio.create_task(upload_after_signalcli_writes())
+
+
+# this stuff desperately needs to be cleaned up and probably moved to scripts
+# maybe a config about where we&#39;re running
+# MEMFS, DOWNLOAD, ROOT_DIR, HOSTNAME, etc
+# is HCL overkill?
+
+
+parser = argparse.ArgumentParser(
+    description=&#34;manage the signal datastore. use ENV=... to use something other than dev&#34;
+)
+subparser = parser.add_subparsers(dest=&#34;subparser&#34;)  # ?
+
+# h/t https://gist.github.com/mivade/384c2c41c3a29c637cb6c603d4197f9f
+
+
+def argument(*name_or_flags: Any, **kwargs: Any) -&gt; tuple:
+    &#34;&#34;&#34;Convenience function to properly format arguments to pass to the
+    subcommand decorator.
+    &#34;&#34;&#34;
+    return (list(name_or_flags), kwargs)
+
+
+def subcommand(
+    _args: Optional[list] = None, parent: argparse._SubParsersAction = subparser
+) -&gt; Callable:
+    &#34;&#34;&#34;Decorator to define a new subcommand in a sanity-preserving way.
+    The function will be stored in the ``func`` variable when the parser
+    parses arguments so that it can be called directly like so::
+        args = cli.parse_args()
+        args.func(args)
+    Usage example::
+        @subcommand([argument(&#34;-d&#34;, help=&#34;Enable debug mode&#34;, action=&#34;store_true&#34;)])
+        def subcommand(args):
+            print(args)
+    Then on the command line::
+        $ python cli.py subcommand -d
+    &#34;&#34;&#34;
+
+    def decorator(func: Callable) -&gt; None:
+        _parser = parent.add_parser(func.__name__, description=func.__doc__)
+        for arg in _args if _args else []:
+            _parser.add_argument(*arg[0], **arg[1])
+        _parser.set_defaults(func=func)
+
+    return decorator
+
+
+@subcommand()
+async def list_accounts(_args: argparse.Namespace) -&gt; None:
+    &#34;list available accounts in table format&#34;
+    cols = [&#34;id&#34;, &#34;last_update_ms&#34;, &#34;last_claim_ms&#34;, &#34;active_node_name&#34;]
+    interface = get_account_interface()
+    # sorry
+    if &#34;notes&#34; in [
+        column.get(&#34;column_name&#34;)
+        for column in (
+            await interface.execute(
+                &#34;select column_name from information_schema.columns where table_name=&#39;signal_accounts&#39;;&#34;
+            )
+            or []  # don&#39;t error if the query fails
+        )
+    ]:
+        cols.append(&#34;notes&#34;)
+    query = f&#34;select {&#39; ,&#39;.join(cols)} from signal_accounts&#34;
+    accounts = await get_account_interface().execute(query)
+    if not isinstance(accounts, list):
+        return
+    table = [cols] + [
+        [str(value) for value in account.values()] for account in accounts
+    ]
+    str_widths = [max(len(row[index]) for row in table) for index in range(len(cols))]
+    row_format = &#34; &#34;.join(&#34;{:&lt;&#34; + str(width) + &#34;}&#34; for width in str_widths)
+    for row in table:
+        print((row_format.format(*row).rstrip()))
+    return
+
+
+@subcommand([argument(&#34;--number&#34;)])
+async def free(ns: argparse.Namespace) -&gt; None:
+    &#34;mark account freed&#34;
+    await get_account_interface().mark_account_freed(ns.number)
+
+
+@subcommand([argument(&#34;--number&#34;), argument(&#34;note&#34;, help=&#34;new note for number&#34;)])
+async def set_note(ns: argparse.Namespace) -&gt; None:
+    &#34;set the note field for a number&#34;
+    await get_account_interface().execute(
+        f&#34;update signal_accounts set notes=&#39;{ns.note}&#39; where id=&#39;{ns.number}&#39;&#34;
+    )
+
+
+@subcommand([argument(&#34;--number&#34;)])
+async def sync(ns: argparse.Namespace) -&gt; None:
+    app = cast(web.Application, {})
+    asyncio.create_task(start_memfs(app))
+    await start_memfs_monitor(app)
+    try:
+        datastore = SignalDatastore(ns.number)
+        await datastore.download()
+    except (IndexError, DatastoreError):
+        datastore = await getFreeSignalDatastore()
+        await datastore.download()
+    try:
+        while 1:
+            time.sleep(3600)
+    except KeyboardInterrupt:
+        await datastore.upload()
+        await datastore.mark_freed()
+
+
+upload_parser = subparser.add_parser(&#34;upload&#34;)
+upload_parser.add_argument(&#34;--path&#34;)
+upload_parser.add_argument(&#34;--number&#34;)
+# download_parser = subparser.add_parser(&#34;download&#34;)
+# download_parser.add_argument(&#34;--number&#34;)
+# migrate_parser = subparser.add_parser(&#34;migrate&#34;)
+# migrate_parser.add_argument(&#34;--create&#34;)
+
+
+if __name__ == &#34;__main__&#34;:
+    args = parser.parse_args()
+    if hasattr(args, &#34;func&#34;):
+        asyncio.run(args.func(args))
+    elif args.subparser == &#34;upload&#34;:
+        if args.path:
+            os.chdir(args.path)
+        if args.number:
+            num = args.number
+        else:
+            num = os.listdir(&#34;data&#34;)[0]
+        store = SignalDatastore(num)
+        asyncio.run(store.upload())
+    else:
+        print(&#34;not implemented&#34;)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="datastore.get_account_interface"><code class="name flex">
+<span>def <span class="ident">get_account_interface</span></span>(<span>) ‑> forest.pghelp.PGInterface</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_account_interface() -&gt; PGInterface:
+    return PGInterface(
+        query_strings=AccountPGExpressions,
+        database=utils.get_secret(&#34;DATABASE_URL&#34;),
+    )</code></pre>
+</details>
+</dd>
+<dt id="datastore.getFreeSignalDatastore"><code class="name flex">
+<span>async def <span class="ident">getFreeSignalDatastore</span></span>(<span>) ‑> <a title="datastore.SignalDatastore" href="#datastore.SignalDatastore">SignalDatastore</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def getFreeSignalDatastore() -&gt; SignalDatastore:
+    interface = get_account_interface()
+    await interface.free_accounts_not_updated_in_the_last_hour()
+    record = await interface.get_free_account()
+    if not record:
+        raise Exception(&#34;no free accounts&#34;)
+        # alternatively, register an account...
+    number = record[0].get(&#34;id&#34;)
+    logging.info(number)
+    assert number
+    return SignalDatastore(number)</code></pre>
+</details>
+</dd>
+<dt id="datastore.start_memfs"><code class="name flex">
+<span>async def <span class="ident">start_memfs</span></span>(<span>app: aiohttp.web_app.Application) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>mount a filesystem in userspace to store data
+the fs contents are stored in memory, so that our keys never touch a disk
+this means we can log signal-cli's interactions with fs,
+and store them in mem_queue.
+if running locally, chdir to /tmp/local-signal with symlinks instead</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def start_memfs(app: web.Application) -&gt; None:
+    &#34;&#34;&#34;
+    mount a filesystem in userspace to store data
+    the fs contents are stored in memory, so that our keys never touch a disk
+    this means we can log signal-cli&#39;s interactions with fs,
+    and store them in mem_queue.
+    if running locally, chdir to /tmp/local-signal with symlinks instead
+    &#34;&#34;&#34;
+    # refactor this whole mess into some sort of more general &#34;figure out where we are before downloading&#34;
+    if utils.LOCAL:
+        if utils.ROOT_DIR == &#34;.&#34;:
+            logging.warning(&#34;not deleting current dir, so not starting memfs&#34;)
+            return
+        try:
+            shutil.rmtree(utils.ROOT_DIR)
+        except (FileNotFoundError, OSError) as e:
+            logging.warning(&#34;couldn&#39;t remove rootdir: %s&#34;, e)
+        os.mkdir(utils.ROOT_DIR)
+        os.mkdir(utils.ROOT_DIR + &#34;/data&#34;)
+        # we&#39;re going to be running in the repo
+        sigcli = utils.get_secret(&#34;SIGNAL_CLI_PATH&#34;) or &#34;signal-cli&#34;
+        sigcli_path = Path(sigcli).absolute()
+        logging.info(&#34;symlinking %s to %s&#34;, sigcli_path, utils.ROOT_DIR)
+        os.symlink(sigcli_path, utils.ROOT_DIR + &#34;/signal-cli&#34;)
+        os.symlink(Path(&#34;avatar.png&#34;).absolute(), utils.ROOT_DIR + &#34;/avatar.png&#34;)
+        logging.info(&#34;chdir to %s&#34;, utils.ROOT_DIR)
+        os.chdir(utils.ROOT_DIR)
+        logging.info(&#34;not starting memfs because running locally&#34;)
+        return
+    logging.info(&#34;starting memfs&#34;)
+    app[&#34;mem_queue&#34;] = mem_queue = aioprocessing.AioQueue()
+    if not os.path.exists(&#34;/dev/fuse&#34;):
+        # you *must* have fuse already loaded if running locally
+        proc = Popen(
+            [&#34;/usr/sbin/insmod&#34;, &#34;/app/fuse.ko&#34;],
+            stdout=PIPE,
+            stderr=PIPE,
+        )
+        proc.wait()
+        (stdout, stderr) = proc.communicate()  # pylint: disable=unused-variable
+        if stderr:
+            raise Exception(
+                f&#34;Could not load fuse module! You may need to recompile.\t\n{stderr.decode()}&#34;
+            )
+
+    def memfs_proc(path: str = &#34;data&#34;) -&gt; Any:
+        &#34;&#34;&#34;Start the memfs process&#34;&#34;&#34;
+        pid = os.getpid()
+        open(&#34;/dev/stdout&#34;, &#34;w&#34;).write(
+            f&#34;Starting memfs with PID: {pid} on dir: {path}\n&#34;
+        )
+        backend = mem.Memory(logqueue=mem_queue)  # type: ignore
+        logging.info(&#34;initing FUSE&#34;)
+        return fuse.FUSE(operations=backend, mountpoint=utils.ROOT_DIR + &#34;/data&#34;)  # type: ignore
+
+    async def launch() -&gt; None:
+        logging.info(&#34;about to launch memfs with aioprocessing&#34;)
+        memfs = aioprocessing.AioProcess(target=memfs_proc)
+        memfs.start()  # pylint: disable=no-member
+        app[&#34;memfs&#34;] = memfs
+        _memfs_process = memfs
+
+    logging.info(&#34;awaiting launch func&#34;)
+    await launch()</code></pre>
+</details>
+</dd>
+<dt id="datastore.start_memfs_monitor"><code class="name flex">
+<span>async def <span class="ident">start_memfs_monitor</span></span>(<span>app: aiohttp.web_app.Application) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>monitor the memfs activity queue for file saves, sync with supabase</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def start_memfs_monitor(app: web.Application) -&gt; None:
+    &#34;&#34;&#34;
+    monitor the memfs activity queue for file saves, sync with supabase
+    &#34;&#34;&#34;
+
+    async def upload_after_signalcli_writes() -&gt; None:
+        queue = app.get(&#34;mem_queue&#34;)
+        if not queue:
+            logging.info(&#34;no mem_queue, nothing to monitor&#34;)
+            return
+        logging.info(&#34;monitoring memfs&#34;)
+        counter = 0
+        while True:
+            queue_item = await queue.coro_get()
+            # iff fsync triggered by signal-cli
+            if (
+                queue_item[0:2] == [&#34;-&gt;&#34;, &#34;fsync&#34;]
+                and queue_item[5][0] == utils.ROOT_DIR + &#34;/signal-cli&#34;
+            ):
+                # /+14703226669
+                # file_to_sync = queue_item[2]
+                # 14703226669
+                maybe_session = app.get(&#34;session&#34;)
+                if maybe_session:
+                    counter += 1
+                    if time.time() % (60 * 3) == 0:
+                        logging.info(&#34;background syncs in the past ~3min: %s&#34;, counter)
+                        counter = 0
+                    await maybe_session.datastore.upload()
+
+    app[&#34;mem_task&#34;] = asyncio.create_task(upload_after_signalcli_writes())</code></pre>
+</details>
+</dd>
+<dt id="datastore.argument"><code class="name flex">
+<span>def <span class="ident">argument</span></span>(<span>*name_or_flags: Any, **kwargs: Any) ‑> tuple</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convenience function to properly format arguments to pass to the
+subcommand decorator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def argument(*name_or_flags: Any, **kwargs: Any) -&gt; tuple:
+    &#34;&#34;&#34;Convenience function to properly format arguments to pass to the
+    subcommand decorator.
+    &#34;&#34;&#34;
+    return (list(name_or_flags), kwargs)</code></pre>
+</details>
+</dd>
+<dt id="datastore.subcommand"><code class="name flex">
+<span>def <span class="ident">subcommand</span></span>(<span>parent: argparse._SubParsersAction = _SubParsersAction(option_strings=[], dest=&#x27;subparser&#x27;, nargs=&#x27;A...&#x27;, const=None, default=None, type=None, choices={&#x27;list_accounts&#x27;: ArgumentParser(prog=&#x27;pdoc list_accounts&#x27;, usage=None, description=&#x27;list available accounts in table format&#x27;, formatter_class=&lt;class &#x27;argparse.HelpFormatter&#x27;&gt;, conflict_handler=&#x27;error&#x27;, add_help=True), &#x27;free&#x27;: ArgumentParser(prog=&#x27;pdoc free&#x27;, usage=None, description=&#x27;mark account freed&#x27;, formatter_class=&lt;class &#x27;argparse.HelpFormatter&#x27;&gt;, conflict_handler=&#x27;error&#x27;, add_help=True), &#x27;set_note&#x27;: ArgumentParser(prog=&#x27;pdoc set_note&#x27;, usage=None, description=&#x27;set the note field for a number&#x27;, formatter_class=&lt;class &#x27;argparse.HelpFormatter&#x27;&gt;, conflict_handler=&#x27;error&#x27;, add_help=True), &#x27;sync&#x27;: ArgumentParser(prog=&#x27;pdoc sync&#x27;, usage=None, description=None, formatter_class=&lt;class &#x27;argparse.HelpFormatter&#x27;&gt;, conflict_handler=&#x27;error&#x27;, add_help=True), &#x27;upload&#x27;: ArgumentParser(prog=&#x27;pdoc upload&#x27;, usage=None, description=None, formatter_class=&lt;class &#x27;argparse.HelpFormatter&#x27;&gt;, conflict_handler=&#x27;error&#x27;, add_help=True)}, help=None, metavar=None)) ‑> Callable</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Decorator to define a new subcommand in a sanity-preserving way.
+The function will be stored in the <code>func</code> variable when the parser
+parses arguments so that it can be called directly like so::
+args = cli.parse_args()
+args.func(args)
+Usage example::
+@subcommand([argument("-d", help="Enable debug mode", action="store_true")])
+def subcommand(args):
+print(args)
+Then on the command line::
+$ python cli.py subcommand -d</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def subcommand(
+    _args: Optional[list] = None, parent: argparse._SubParsersAction = subparser
+) -&gt; Callable:
+    &#34;&#34;&#34;Decorator to define a new subcommand in a sanity-preserving way.
+    The function will be stored in the ``func`` variable when the parser
+    parses arguments so that it can be called directly like so::
+        args = cli.parse_args()
+        args.func(args)
+    Usage example::
+        @subcommand([argument(&#34;-d&#34;, help=&#34;Enable debug mode&#34;, action=&#34;store_true&#34;)])
+        def subcommand(args):
+            print(args)
+    Then on the command line::
+        $ python cli.py subcommand -d
+    &#34;&#34;&#34;
+
+    def decorator(func: Callable) -&gt; None:
+        _parser = parent.add_parser(func.__name__, description=func.__doc__)
+        for arg in _args if _args else []:
+            _parser.add_argument(*arg[0], **arg[1])
+        _parser.set_defaults(func=func)
+
+    return decorator</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="datastore.DatastoreError"><code class="flex name class">
+<span>class <span class="ident">DatastoreError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DatastoreError(Exception):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="datastore.SignalDatastore"><code class="flex name class">
+<span>class <span class="ident">SignalDatastore</span></span>
+<span>(</span><span>number: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Download, claim, mount, and sync a signal datastore</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SignalDatastore:
+    &#34;&#34;&#34;
+    Download, claim, mount, and sync a signal datastore
+    &#34;&#34;&#34;
+
+    def __init__(self, number: str):
+        self.account_interface = get_account_interface()
+        formatted_number = utils.signal_format(number)
+        if isinstance(formatted_number, str):
+            self.number: str = formatted_number
+        else:
+            raise Exception(&#34;not a valid number&#34;)
+        logging.info(&#34;SignalDatastore number is %s&#34;, self.number)
+        self.filepath = &#34;data/&#34; + number
+        # await self.account_interface.create_table()
+
+    def is_registered_locally(self) -&gt; bool:
+        try:
+            return json.load(open(self.filepath))[&#34;registered&#34;]
+        except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+            logging.error(e)
+            return False
+
+    async def is_claimed(self) -&gt; Optional[str]:
+        record = await self.account_interface.get_claim(self.number)
+        if not record:
+            logging.warning(&#34;checking claim without plus instead&#34;)
+            record = await self.account_interface.get_claim(self.number[1:])
+            if record:
+                return record[0].get(&#34;active_node_name&#34;)
+            raise Exception(f&#34;no record in db for {self.number}&#34;)
+        return record[0].get(&#34;active_node_name&#34;)
+
+    async def download(self) -&gt; None:
+        &#34;&#34;&#34;Fetch our account datastore from postgresql and mark it claimed&#34;&#34;&#34;
+        logging.info(&#34;datastore download entered&#34;)
+        await self.account_interface.free_accounts_not_updated_in_the_last_hour()
+        for i in range(5):
+            logging.info(&#34;checking claim&#34;)
+            claim = await self.is_claimed()
+            if not claim:
+                logging.info(&#34;no account claim!&#34;)
+                break
+            # you can also try to kill the other process
+            logging.info(
+                &#34;this account is claimed by %s, waiting&#34;,
+                claim,
+            )
+            await asyncio.sleep(6)
+            if i == 4:
+                logging.info(&#34;time&#39;s up&#34;)
+        logging.info(&#34;downloading&#34;)
+        record = await self.account_interface.get_datastore(self.number)
+        if not record and utils.get_secret(&#34;MIGRATE&#34;):
+            logging.warning(&#34;trying without plus&#34;)
+            record = await self.account_interface.get_datastore(
+                self.number.removeprefix(&#34;+&#34;)
+            )
+        logging.info(&#34;got datastore from pg&#34;)
+        if json_data := record[0].get(&#34;account&#34;):
+            # legacy json-only field
+            loaded_data = json.loads(json_data)
+            if &#34;username&#34; in loaded_data:
+                try:
+                    os.mkdir(&#34;data&#34;)
+                except FileExistsError:
+                    pass
+                open(&#34;data/&#34; + loaded_data[&#34;username&#34;], &#34;w&#34;).write(json_data)
+                return
+        buffer = BytesIO(record[0].get(&#34;datastore&#34;))
+        tarball = TarFile(fileobj=buffer)
+        fnames = [member.name for member in tarball.getmembers()]
+        logging.debug(fnames[:2])
+        logging.info(
+            &#34;expected file %s exists: %s&#34;,
+            self.filepath,
+            self.filepath in fnames,
+        )
+        tarball.extractall(utils.ROOT_DIR)
+        # open(&#34;last_downloaded_checksum&#34;, &#34;w&#34;).write(zlib.crc32(buffer.seek(0).read()))
+        await self.account_interface.mark_account_claimed(self.number, utils.HOSTNAME)
+        logging.debug(&#34;marked account as claimed, asserting that this is the case&#34;)
+        assert await self.is_claimed()
+        return
+
+    def tarball_data(self) -&gt; Optional[bytes]:
+        &#34;&#34;&#34;Tarball our data files&#34;&#34;&#34;
+        if not self.is_registered_locally():
+            logging.error(&#34;datastore not registered. not uploading&#34;)
+            return None
+        # fixme: check if the last thing we downloaded/uploaded
+        # is older than the last thing in the db
+        buffer = BytesIO()
+        tarball = TarFile(fileobj=buffer, mode=&#34;w&#34;)
+        try:
+            tarball.add(self.filepath)
+            try:
+                tarball.add(self.filepath + &#34;.d&#34;)
+            except FileNotFoundError:
+                logging.info(&#34;ignoring no %s&#34;, self.filepath + &#34;.d&#34;)
+        except FileNotFoundError:
+            logging.warning(
+                &#34;couldn&#39;t find %s in %s, adding data instead&#34;,
+                self.filepath + &#34;.d&#34;,
+                os.getcwd(),
+            )
+            tarball.add(&#34;data&#34;)
+        fnames = [member.name for member in tarball.getmembers()]
+        logging.debug(fnames[:2])
+        tarball.close()
+        buffer.seek(0)
+        data = buffer.read()
+        return data
+
+    async def upload(self) -&gt; Any:
+        &#34;&#34;&#34;Puts account datastore in postgresql.&#34;&#34;&#34;
+        data = self.tarball_data()
+        if not data:
+            return
+        kb = round(len(data) / 1024, 1)
+        # maybe something like:
+        # upload and return registered timestamp. write timestamp locally. when uploading, check that the last_updated_ts in postgres matches the file
+        # if it doesn&#39;t, you&#39;ve probably diverged, but someone may have put an invalid ratchet more recently by mistake (e.g. restarting triggering upload despite crashing)
+        # or:
+        # open(&#34;last_uploaded_checksum&#34;, &#34;w&#34;).write(zlib.crc32(buffer.seek(0).read()))
+        await self.account_interface.upload(self.number, data)
+        logging.debug(&#34;saved %s kb of tarballed datastore to supabase&#34;, kb)
+        return
+
+    async def mark_freed(self) -&gt; list:
+        &#34;&#34;&#34;Marks account as freed in PG database.&#34;&#34;&#34;
+        return await self.account_interface.mark_account_freed(self.number)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="datastore.SignalDatastore.is_registered_locally"><code class="name flex">
+<span>def <span class="ident">is_registered_locally</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_registered_locally(self) -&gt; bool:
+    try:
+        return json.load(open(self.filepath))[&#34;registered&#34;]
+    except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+        logging.error(e)
+        return False</code></pre>
+</details>
+</dd>
+<dt id="datastore.SignalDatastore.is_claimed"><code class="name flex">
+<span>async def <span class="ident">is_claimed</span></span>(<span>self) ‑> Optional[str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def is_claimed(self) -&gt; Optional[str]:
+    record = await self.account_interface.get_claim(self.number)
+    if not record:
+        logging.warning(&#34;checking claim without plus instead&#34;)
+        record = await self.account_interface.get_claim(self.number[1:])
+        if record:
+            return record[0].get(&#34;active_node_name&#34;)
+        raise Exception(f&#34;no record in db for {self.number}&#34;)
+    return record[0].get(&#34;active_node_name&#34;)</code></pre>
+</details>
+</dd>
+<dt id="datastore.SignalDatastore.download"><code class="name flex">
+<span>async def <span class="ident">download</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Fetch our account datastore from postgresql and mark it claimed</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def download(self) -&gt; None:
+    &#34;&#34;&#34;Fetch our account datastore from postgresql and mark it claimed&#34;&#34;&#34;
+    logging.info(&#34;datastore download entered&#34;)
+    await self.account_interface.free_accounts_not_updated_in_the_last_hour()
+    for i in range(5):
+        logging.info(&#34;checking claim&#34;)
+        claim = await self.is_claimed()
+        if not claim:
+            logging.info(&#34;no account claim!&#34;)
+            break
+        # you can also try to kill the other process
+        logging.info(
+            &#34;this account is claimed by %s, waiting&#34;,
+            claim,
+        )
+        await asyncio.sleep(6)
+        if i == 4:
+            logging.info(&#34;time&#39;s up&#34;)
+    logging.info(&#34;downloading&#34;)
+    record = await self.account_interface.get_datastore(self.number)
+    if not record and utils.get_secret(&#34;MIGRATE&#34;):
+        logging.warning(&#34;trying without plus&#34;)
+        record = await self.account_interface.get_datastore(
+            self.number.removeprefix(&#34;+&#34;)
+        )
+    logging.info(&#34;got datastore from pg&#34;)
+    if json_data := record[0].get(&#34;account&#34;):
+        # legacy json-only field
+        loaded_data = json.loads(json_data)
+        if &#34;username&#34; in loaded_data:
+            try:
+                os.mkdir(&#34;data&#34;)
+            except FileExistsError:
+                pass
+            open(&#34;data/&#34; + loaded_data[&#34;username&#34;], &#34;w&#34;).write(json_data)
+            return
+    buffer = BytesIO(record[0].get(&#34;datastore&#34;))
+    tarball = TarFile(fileobj=buffer)
+    fnames = [member.name for member in tarball.getmembers()]
+    logging.debug(fnames[:2])
+    logging.info(
+        &#34;expected file %s exists: %s&#34;,
+        self.filepath,
+        self.filepath in fnames,
+    )
+    tarball.extractall(utils.ROOT_DIR)
+    # open(&#34;last_downloaded_checksum&#34;, &#34;w&#34;).write(zlib.crc32(buffer.seek(0).read()))
+    await self.account_interface.mark_account_claimed(self.number, utils.HOSTNAME)
+    logging.debug(&#34;marked account as claimed, asserting that this is the case&#34;)
+    assert await self.is_claimed()
+    return</code></pre>
+</details>
+</dd>
+<dt id="datastore.SignalDatastore.tarball_data"><code class="name flex">
+<span>def <span class="ident">tarball_data</span></span>(<span>self) ‑> Optional[bytes]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tarball our data files</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def tarball_data(self) -&gt; Optional[bytes]:
+    &#34;&#34;&#34;Tarball our data files&#34;&#34;&#34;
+    if not self.is_registered_locally():
+        logging.error(&#34;datastore not registered. not uploading&#34;)
+        return None
+    # fixme: check if the last thing we downloaded/uploaded
+    # is older than the last thing in the db
+    buffer = BytesIO()
+    tarball = TarFile(fileobj=buffer, mode=&#34;w&#34;)
+    try:
+        tarball.add(self.filepath)
+        try:
+            tarball.add(self.filepath + &#34;.d&#34;)
+        except FileNotFoundError:
+            logging.info(&#34;ignoring no %s&#34;, self.filepath + &#34;.d&#34;)
+    except FileNotFoundError:
+        logging.warning(
+            &#34;couldn&#39;t find %s in %s, adding data instead&#34;,
+            self.filepath + &#34;.d&#34;,
+            os.getcwd(),
+        )
+        tarball.add(&#34;data&#34;)
+    fnames = [member.name for member in tarball.getmembers()]
+    logging.debug(fnames[:2])
+    tarball.close()
+    buffer.seek(0)
+    data = buffer.read()
+    return data</code></pre>
+</details>
+</dd>
+<dt id="datastore.SignalDatastore.upload"><code class="name flex">
+<span>async def <span class="ident">upload</span></span>(<span>self) ‑> Any</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Puts account datastore in postgresql.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def upload(self) -&gt; Any:
+    &#34;&#34;&#34;Puts account datastore in postgresql.&#34;&#34;&#34;
+    data = self.tarball_data()
+    if not data:
+        return
+    kb = round(len(data) / 1024, 1)
+    # maybe something like:
+    # upload and return registered timestamp. write timestamp locally. when uploading, check that the last_updated_ts in postgres matches the file
+    # if it doesn&#39;t, you&#39;ve probably diverged, but someone may have put an invalid ratchet more recently by mistake (e.g. restarting triggering upload despite crashing)
+    # or:
+    # open(&#34;last_uploaded_checksum&#34;, &#34;w&#34;).write(zlib.crc32(buffer.seek(0).read()))
+    await self.account_interface.upload(self.number, data)
+    logging.debug(&#34;saved %s kb of tarballed datastore to supabase&#34;, kb)
+    return</code></pre>
+</details>
+</dd>
+<dt id="datastore.SignalDatastore.mark_freed"><code class="name flex">
+<span>async def <span class="ident">mark_freed</span></span>(<span>self) ‑> list</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Marks account as freed in PG database.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def mark_freed(self) -&gt; list:
+    &#34;&#34;&#34;Marks account as freed in PG database.&#34;&#34;&#34;
+    return await self.account_interface.mark_account_freed(self.number)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="datastore.get_account_interface" href="#datastore.get_account_interface">get_account_interface</a></code></li>
+<li><code><a title="datastore.getFreeSignalDatastore" href="#datastore.getFreeSignalDatastore">getFreeSignalDatastore</a></code></li>
+<li><code><a title="datastore.start_memfs" href="#datastore.start_memfs">start_memfs</a></code></li>
+<li><code><a title="datastore.start_memfs_monitor" href="#datastore.start_memfs_monitor">start_memfs_monitor</a></code></li>
+<li><code><a title="datastore.argument" href="#datastore.argument">argument</a></code></li>
+<li><code><a title="datastore.subcommand" href="#datastore.subcommand">subcommand</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="datastore.DatastoreError" href="#datastore.DatastoreError">DatastoreError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="datastore.SignalDatastore" href="#datastore.SignalDatastore">SignalDatastore</a></code></h4>
+<ul class="">
+<li><code><a title="datastore.SignalDatastore.is_registered_locally" href="#datastore.SignalDatastore.is_registered_locally">is_registered_locally</a></code></li>
+<li><code><a title="datastore.SignalDatastore.is_claimed" href="#datastore.SignalDatastore.is_claimed">is_claimed</a></code></li>
+<li><code><a title="datastore.SignalDatastore.download" href="#datastore.SignalDatastore.download">download</a></code></li>
+<li><code><a title="datastore.SignalDatastore.tarball_data" href="#datastore.SignalDatastore.tarball_data">tarball_data</a></code></li>
+<li><code><a title="datastore.SignalDatastore.upload" href="#datastore.SignalDatastore.upload">upload</a></code></li>
+<li><code><a title="datastore.SignalDatastore.mark_freed" href="#datastore.SignalDatastore.mark_freed">mark_freed</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

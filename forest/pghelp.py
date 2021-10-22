@@ -59,7 +59,10 @@ class PGExpressions(dict):
 
     def get_query(self, key: str) -> str:
         self.logger.debug(f"self.get invoked for {key}")
-        return dict.__getitem__(self, key).replace("{self.table}", self.table)
+        try:
+            return dict.__getitem__(self, key).replace("{self.table}", self.table)
+        except:
+            return ""
 
 
 class PGInterface:

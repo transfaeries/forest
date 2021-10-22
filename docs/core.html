@@ -528,332 +528,6 @@ Turn this off, authenticate, or obfuscate in prod to someone from using your bot
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="core.Bot"><code class="flex name class">
-<span>class <span class="ident">Bot</span></span>
-<span>(</span><span>*args: str)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Handles messages and command dispatch, as well as basic commands.
-Must be instantiated within a running async loop.
-Subclass this with your own commands.</p>
-<p>Creates AND STARTS a bot that routes commands to do_x handlers</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Bot(Signal):
-    &#34;&#34;&#34;Handles messages and command dispatch, as well as basic commands.
-    Must be instantiated within a running async loop.
-    Subclass this with your own commands.
-    &#34;&#34;&#34;
-
-    def __init__(self, *args: str) -&gt; None:
-        &#34;&#34;&#34;Creates AND STARTS a bot that routes commands to do_x handlers&#34;&#34;&#34;
-        self.client_session = aiohttp.ClientSession()
-        self.mobster = payments_monitor.Mobster()
-        super().__init__(*args)
-        asyncio.create_task(self.start_process())
-        asyncio.create_task(self.handle_messages())
-        if utils.get_secret(&#34;MONITOR_WALLET&#34;):
-            # currently spams and re-credits the same invoice each reboot
-            asyncio.create_task(self.mobster.monitor_wallet())
-
-    async def handle_messages(self) -&gt; None:
-        &#34;&#34;&#34;Read messages from the queue and pass each message to handle_message
-        If that returns a non-empty string, send it as a response&#34;&#34;&#34;
-        async for message in self.signalcli_output_iter():
-            # potentially stick a try-catch block here and send errors to admin
-            response = await self.handle_message(message)
-            if response:
-                await self.respond(message, response)
-
-    async def handle_message(self, message: Message) -&gt; Response:
-        &#34;&#34;&#34;Method dispatch to do_x commands and goodies.
-        Overwrite this to add your own non-command logic,
-        but call super().handle_message(message) at the end&#34;&#34;&#34;
-        if message.command:
-            if hasattr(self, &#34;do_&#34; + message.command):
-                return await getattr(self, &#34;do_&#34; + message.command)(message)
-            suggest_help = &#34; Try /help.&#34; if hasattr(self, &#34;do_help&#34;) else &#34;&#34;
-            return f&#34;Sorry! Command {message.command} not recognized!&#34; + suggest_help
-        if message.text == &#34;TERMINATE&#34;:
-            return &#34;signal session reset&#34;
-        if message.text and not message.group:
-            return &#34;That didn&#39;t look like a valid command&#34;
-        if message.payment:
-            return await self.handle_payment(message)
-        return None
-
-    async def do_help(self, message: Message) -&gt; str:
-        &#34;&#34;&#34;List available commands. /help &lt;command&gt; gives you that command&#39;s documentation, if available&#34;&#34;&#34;
-        if message.arg1:
-            if hasattr(self, &#34;do_&#34; + message.arg1):
-                cmd = getattr(self, &#34;do_&#34; + message.arg1)
-                if cmd.__doc__:
-                    return cmd.__doc__
-                return f&#34;Sorry, {message.arg1} isn&#39;t documented&#34;
-        # TODO: filter aliases and indicate which commands are undocumented
-        return &#34;commands: &#34; + &#34;, &#34;.join(
-            k.removeprefix(&#34;do_&#34;) for k in dir(self) if k.startswith(&#34;do_&#34;)
-        )
-
-    async def do_printerfact(self, _: Message) -&gt; str:
-        &#34;Learn a fact about printers&#34;
-        async with self.client_session.get(&#34;https://colbyolson.com/printers&#34;) as resp:
-            fact = await resp.text()
-        return fact.strip()
-
-    async def do_ping(self, message: Message) -&gt; str:
-        &#34;&#34;&#34;pong&#34;&#34;&#34;
-        if message.text:
-            return f&#34;pong {message.text}&#34;
-        return &#34;pong&#34;
-
-    async def check_target_number(self, msg: Message) -&gt; Optional[str]:
-        &#34;&#34;&#34;Check if arg1 is a valid number. If it isn&#39;t, let the user know and return None&#34;&#34;&#34;
-        try:
-            logging.debug(&#34;checking %s&#34;, msg.arg1)
-            assert msg.arg1
-            parsed = pn.parse(msg.arg1, &#34;US&#34;)  # fixme: use PhoneNumberMatcher
-            assert pn.is_valid_number(parsed)
-            number = pn.format_number(parsed, pn.PhoneNumberFormat.E164)
-            return number
-        except (pn.phonenumberutil.NumberParseException, AssertionError):
-            await self.send_message(
-                msg.source,
-                f&#34;{msg.arg1} doesn&#39;t look a valid number or user. &#34;
-                &#34;did you include the country code?&#34;,
-            )
-            return None
-
-    async def handle_payment(self, message: Message) -&gt; str:
-        &#34;&#34;&#34;Decode the receipt, then update balances&#34;&#34;&#34;
-        logging.info(message.payment)
-        amount_pmob = await self.mobster.get_receipt_amount_pmob(
-            message.payment[&#34;receipt&#34;]
-        )
-        if amount_pmob is None:
-            return &#34;That looked like a payment, but we couldn&#39;t parse it&#34;
-        amount_mob = mc_util.pmob2mob(amount_pmob)
-        amount_usd_cents = round(amount_mob * await self.mobster.get_rate() * 100)
-        self.mobster.ledger_manager.put_mob_tx(
-            message.source,
-            amount_usd_cents,
-            amount_pmob,
-            message.payment.get(&#34;note&#34;),
-        )
-        await self.respond(
-            message,
-            f&#34;Thank you for sending {amount_mob} MOB ({amount_usd_cents/100} USD)&#34;,
-        )
-        return await self.payment_response(message)
-
-    async def payment_response(self, _: Message) -&gt; Response:
-        return &#34;This bot doesn&#39;t have a response for payments.&#34;</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li><a title="core.Signal" href="#core.Signal">Signal</a></li>
-</ul>
-<h3>Methods</h3>
-<dl>
-<dt id="core.Bot.check_target_number"><code class="name flex">
-<span>async def <span class="ident">check_target_number</span></span>(<span>self, msg: <a title="core.Message" href="#core.Message">Message</a>) ‑> Optional[str]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Check if arg1 is a valid number. If it isn't, let the user know and return None</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def check_target_number(self, msg: Message) -&gt; Optional[str]:
-    &#34;&#34;&#34;Check if arg1 is a valid number. If it isn&#39;t, let the user know and return None&#34;&#34;&#34;
-    try:
-        logging.debug(&#34;checking %s&#34;, msg.arg1)
-        assert msg.arg1
-        parsed = pn.parse(msg.arg1, &#34;US&#34;)  # fixme: use PhoneNumberMatcher
-        assert pn.is_valid_number(parsed)
-        number = pn.format_number(parsed, pn.PhoneNumberFormat.E164)
-        return number
-    except (pn.phonenumberutil.NumberParseException, AssertionError):
-        await self.send_message(
-            msg.source,
-            f&#34;{msg.arg1} doesn&#39;t look a valid number or user. &#34;
-            &#34;did you include the country code?&#34;,
-        )
-        return None</code></pre>
-</details>
-</dd>
-<dt id="core.Bot.do_help"><code class="name flex">
-<span>async def <span class="ident">do_help</span></span>(<span>self, message: <a title="core.Message" href="#core.Message">Message</a>) ‑> str</span>
-</code></dt>
-<dd>
-<div class="desc"><p>List available commands. /help <command> gives you that command's documentation, if available</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def do_help(self, message: Message) -&gt; str:
-    &#34;&#34;&#34;List available commands. /help &lt;command&gt; gives you that command&#39;s documentation, if available&#34;&#34;&#34;
-    if message.arg1:
-        if hasattr(self, &#34;do_&#34; + message.arg1):
-            cmd = getattr(self, &#34;do_&#34; + message.arg1)
-            if cmd.__doc__:
-                return cmd.__doc__
-            return f&#34;Sorry, {message.arg1} isn&#39;t documented&#34;
-    # TODO: filter aliases and indicate which commands are undocumented
-    return &#34;commands: &#34; + &#34;, &#34;.join(
-        k.removeprefix(&#34;do_&#34;) for k in dir(self) if k.startswith(&#34;do_&#34;)
-    )</code></pre>
-</details>
-</dd>
-<dt id="core.Bot.do_ping"><code class="name flex">
-<span>async def <span class="ident">do_ping</span></span>(<span>self, message: <a title="core.Message" href="#core.Message">Message</a>) ‑> str</span>
-</code></dt>
-<dd>
-<div class="desc"><p>pong</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def do_ping(self, message: Message) -&gt; str:
-    &#34;&#34;&#34;pong&#34;&#34;&#34;
-    if message.text:
-        return f&#34;pong {message.text}&#34;
-    return &#34;pong&#34;</code></pre>
-</details>
-</dd>
-<dt id="core.Bot.do_printerfact"><code class="name flex">
-<span>async def <span class="ident">do_printerfact</span></span>(<span>self, _: <a title="core.Message" href="#core.Message">Message</a>) ‑> str</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Learn a fact about printers</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def do_printerfact(self, _: Message) -&gt; str:
-    &#34;Learn a fact about printers&#34;
-    async with self.client_session.get(&#34;https://colbyolson.com/printers&#34;) as resp:
-        fact = await resp.text()
-    return fact.strip()</code></pre>
-</details>
-</dd>
-<dt id="core.Bot.handle_message"><code class="name flex">
-<span>async def <span class="ident">handle_message</span></span>(<span>self, message: <a title="core.Message" href="#core.Message">Message</a>) ‑> Union[str, list, dict[str, str], ForwardRef(None)]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Method dispatch to do_x commands and goodies.
-Overwrite this to add your own non-command logic,
-but call super().handle_message(message) at the end</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def handle_message(self, message: Message) -&gt; Response:
-    &#34;&#34;&#34;Method dispatch to do_x commands and goodies.
-    Overwrite this to add your own non-command logic,
-    but call super().handle_message(message) at the end&#34;&#34;&#34;
-    if message.command:
-        if hasattr(self, &#34;do_&#34; + message.command):
-            return await getattr(self, &#34;do_&#34; + message.command)(message)
-        suggest_help = &#34; Try /help.&#34; if hasattr(self, &#34;do_help&#34;) else &#34;&#34;
-        return f&#34;Sorry! Command {message.command} not recognized!&#34; + suggest_help
-    if message.text == &#34;TERMINATE&#34;:
-        return &#34;signal session reset&#34;
-    if message.text and not message.group:
-        return &#34;That didn&#39;t look like a valid command&#34;
-    if message.payment:
-        return await self.handle_payment(message)
-    return None</code></pre>
-</details>
-</dd>
-<dt id="core.Bot.handle_messages"><code class="name flex">
-<span>async def <span class="ident">handle_messages</span></span>(<span>self) ‑> None</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Read messages from the queue and pass each message to handle_message
-If that returns a non-empty string, send it as a response</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def handle_messages(self) -&gt; None:
-    &#34;&#34;&#34;Read messages from the queue and pass each message to handle_message
-    If that returns a non-empty string, send it as a response&#34;&#34;&#34;
-    async for message in self.signalcli_output_iter():
-        # potentially stick a try-catch block here and send errors to admin
-        response = await self.handle_message(message)
-        if response:
-            await self.respond(message, response)</code></pre>
-</details>
-</dd>
-<dt id="core.Bot.handle_payment"><code class="name flex">
-<span>async def <span class="ident">handle_payment</span></span>(<span>self, message: <a title="core.Message" href="#core.Message">Message</a>) ‑> str</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Decode the receipt, then update balances</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def handle_payment(self, message: Message) -&gt; str:
-    &#34;&#34;&#34;Decode the receipt, then update balances&#34;&#34;&#34;
-    logging.info(message.payment)
-    amount_pmob = await self.mobster.get_receipt_amount_pmob(
-        message.payment[&#34;receipt&#34;]
-    )
-    if amount_pmob is None:
-        return &#34;That looked like a payment, but we couldn&#39;t parse it&#34;
-    amount_mob = mc_util.pmob2mob(amount_pmob)
-    amount_usd_cents = round(amount_mob * await self.mobster.get_rate() * 100)
-    self.mobster.ledger_manager.put_mob_tx(
-        message.source,
-        amount_usd_cents,
-        amount_pmob,
-        message.payment.get(&#34;note&#34;),
-    )
-    await self.respond(
-        message,
-        f&#34;Thank you for sending {amount_mob} MOB ({amount_usd_cents/100} USD)&#34;,
-    )
-    return await self.payment_response(message)</code></pre>
-</details>
-</dd>
-<dt id="core.Bot.payment_response"><code class="name flex">
-<span>async def <span class="ident">payment_response</span></span>(<span>self, _: <a title="core.Message" href="#core.Message">Message</a>) ‑> Union[str, list, dict[str, str], ForwardRef(None)]</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def payment_response(self, _: Message) -&gt; Response:
-    return &#34;This bot doesn&#39;t have a response for payments.&#34;</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Inherited members</h3>
-<ul class="hlist">
-<li><code><b><a title="core.Signal" href="#core.Signal">Signal</a></b></code>:
-<ul class="hlist">
-<li><code><a title="core.Signal.async_shutdown" href="#core.Signal.async_shutdown">async_shutdown</a></code></li>
-<li><code><a title="core.Signal.handle_signalcli_raw_line" href="#core.Signal.handle_signalcli_raw_line">handle_signalcli_raw_line</a></code></li>
-<li><code><a title="core.Signal.handle_signalcli_raw_output" href="#core.Signal.handle_signalcli_raw_output">handle_signalcli_raw_output</a></code></li>
-<li><code><a title="core.Signal.respond" href="#core.Signal.respond">respond</a></code></li>
-<li><code><a title="core.Signal.send_message" href="#core.Signal.send_message">send_message</a></code></li>
-<li><code><a title="core.Signal.send_reaction" href="#core.Signal.send_reaction">send_reaction</a></code></li>
-<li><code><a title="core.Signal.set_profile" href="#core.Signal.set_profile">set_profile</a></code></li>
-<li><code><a title="core.Signal.signalcli_input_iter" href="#core.Signal.signalcli_input_iter">signalcli_input_iter</a></code></li>
-<li><code><a title="core.Signal.signalcli_output_iter" href="#core.Signal.signalcli_output_iter">signalcli_output_iter</a></code></li>
-<li><code><a title="core.Signal.start_process" href="#core.Signal.start_process">start_process</a></code></li>
-<li><code><a title="core.Signal.sync_signal_handler" href="#core.Signal.sync_signal_handler">sync_signal_handler</a></code></li>
-<li><code><a title="core.Signal.write_commands" href="#core.Signal.write_commands">write_commands</a></code></li>
-</ul>
-</li>
-</ul>
-</dd>
 <dt id="core.Message"><code class="flex name class">
 <span>class <span class="ident">Message</span></span>
 <span>(</span><span>blob: dict)</span>
@@ -1158,243 +832,6 @@ actually writes those json blobs to signal-cli's stdin.</p></div>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="core.Signal.async_shutdown"><code class="name flex">
-<span>async def <span class="ident">async_shutdown</span></span>(<span>self, *_: Any, wait: bool = False) ‑> None</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Upload our datastore, close postgres connections pools, kill signal-cli, exit</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def async_shutdown(self, *_: Any, wait: bool = False) -&gt; None:
-    &#34;&#34;&#34;Upload our datastore, close postgres connections pools, kill signal-cli, exit&#34;&#34;&#34;
-    logging.info(&#34;starting async_shutdown&#34;)
-    await self.datastore.upload()
-    if self.proc:
-        try:
-            self.proc.kill()
-            if wait:
-                await self.proc.wait()
-                await self.datastore.upload()
-        except ProcessLookupError:
-            logging.info(&#34;no signal-cli process&#34;)
-    await self.datastore.mark_freed()
-    await pghelp.close_pools()
-    # this still deadlocks. see https://github.com/forestcontact/forest-draft/issues/10
-    if datastore._memfs_process:
-        executor = datastore._memfs_process._get_executor()
-        logging.info(executor)
-        executor.shutdown(wait=False, cancel_futures=True)
-    logging.info(&#34;exited&#34;.center(60, &#34;=&#34;))
-    sys.exit(0)
-    logging.info(&#34;called sys.exit but still running, trying os._exit&#34;)
-    os._exit(1)</code></pre>
-</details>
-</dd>
-<dt id="core.Signal.handle_signalcli_raw_line"><code class="name flex">
-<span>async def <span class="ident">handle_signalcli_raw_line</span></span>(<span>self, line: str) ‑> None</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Try to parse a single line of signal-cli output. If it's a message, enqueue it</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def handle_signalcli_raw_line(self, line: str) -&gt; None:
-    &#34;&#34;&#34;Try to parse a single line of signal-cli output. If it&#39;s a message, enqueue it&#34;&#34;&#34;
-    # TODO: maybe output and color non-json. pretty-print errors
-    # unrelatedly, try to sensibly color the other logging stuff like http logs
-    # fly / db / asyncio and other lib warnings / java / signal logic and networking
-    try:
-        blob = json.loads(line)
-    except json.JSONDecodeError:
-        logging.info(&#34;signal: %s&#34;, line)
-        return
-    if not isinstance(blob, dict):  # e.g. a timestamp
-        return
-    if &#34;error&#34; in blob:
-        if &#34;traceback&#34; in blob:
-            exception, *tb = blob[&#34;traceback&#34;].split(&#34;\n&#34;)
-            logging.error(termcolor.colored(exception, &#34;red&#34;))
-            # maybe also send this to admin as a signal message
-            for _line in tb:
-                logging.error(_line)
-        else:
-            logging.error(termcolor.colored(blob[&#34;error&#34;], &#34;red&#34;))
-        return
-    msg = Message(blob)
-    if msg.full_text:  # and utils.get_secret(&#34;I_AM_NOT_A_FEDERAL_AGENT&#34;):
-        logging.info(&#34;signal: %s&#34;, line)
-    await self.signalcli_output_queue.put(msg)
-    return</code></pre>
-</details>
-</dd>
-<dt id="core.Signal.handle_signalcli_raw_output"><code class="name flex">
-<span>async def <span class="ident">handle_signalcli_raw_output</span></span>(<span>self, stream: asyncio.streams.StreamReader) ‑> None</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Read signal-cli output but delegate handling it</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def handle_signalcli_raw_output(self, stream: StreamReader) -&gt; None:
-    &#34;&#34;&#34;Read signal-cli output but delegate handling it&#34;&#34;&#34;
-    while True:
-        line = (await stream.readline()).decode().strip()
-        if not line:
-            break
-        await self.handle_signalcli_raw_line(line)
-    logging.info(&#34;stopped reading signal-cli stdout&#34;)</code></pre>
-</details>
-</dd>
-<dt id="core.Signal.respond"><code class="name flex">
-<span>async def <span class="ident">respond</span></span>(<span>self, target_msg: <a title="core.Message" href="#core.Message">Message</a>, msg: Union[str, list, dict]) ‑> None</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Respond to a message depending on whether it's a DM or group</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def respond(self, target_msg: Message, msg: Union[str, list, dict]) -&gt; None:
-    &#34;&#34;&#34;Respond to a message depending on whether it&#39;s a DM or group&#34;&#34;&#34;
-    if target_msg.group:
-        await self.send_message(None, msg, group=target_msg.group)
-    else:
-        await self.send_message(target_msg.source, msg)</code></pre>
-</details>
-</dd>
-<dt id="core.Signal.send_message"><code class="name flex">
-<span>async def <span class="ident">send_message</span></span>(<span>self, recipient: Optional[str], msg: Union[str, list, dict[str, str], ForwardRef(None)], group: Optional[str] = None, endsession: bool = False, attachments: Optional[list] = None) ‑> None</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Builds send command with specified recipient and msg, writes to signal-cli.
-Prettyprints dict msgs, sends multiple messages for lists. Also does groups,
-attachments, and endsession</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def send_message(  # pylint: disable=too-many-arguments
-    self,
-    recipient: Optional[str],
-    msg: Response,
-    group: Optional[str] = None,  # maybe combine this with recipient?
-    endsession: bool = False,
-    attachments: Optional[list[str]] = None,
-) -&gt; None:
-    &#34;&#34;&#34;Builds send command with specified recipient and msg, writes to signal-cli.
-    Prettyprints dict msgs, sends multiple messages for lists. Also does groups,
-    attachments, and endsession&#34;&#34;&#34;
-    if isinstance(msg, list):
-        for m in msg:
-            await self.send_message(recipient, m)
-        return
-    if isinstance(msg, dict):
-        msg = &#34;\n&#34;.join((f&#34;{key}:\t{value}&#34; for key, value in msg.items()))
-    json_command: JSON = {
-        &#34;command&#34;: &#34;send&#34;,
-        &#34;message&#34;: msg,
-    }
-    if endsession:
-        json_command[&#34;endsession&#34;] = True
-    if attachments:
-        json_command[&#34;attachment&#34;] = attachments
-    if group:
-        json_command[&#34;group&#34;] = group
-    elif recipient:
-        try:
-            assert recipient == utils.signal_format(recipient)
-        except (AssertionError, NumberParseException) as e:
-            logging.error(e)
-            return
-        json_command[&#34;recipient&#34;] = [str(recipient)]
-    await self.signalcli_input_queue.put(json_command)
-    return</code></pre>
-</details>
-</dd>
-<dt id="core.Signal.send_reaction"><code class="name flex">
-<span>async def <span class="ident">send_reaction</span></span>(<span>self, target_msg: <a title="core.Message" href="#core.Message">Message</a>, emoji: str) ‑> None</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Send a reaction. Protip: you can use e.g. 😀 in python</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def send_reaction(self, target_msg: Message, emoji: str) -&gt; None:
-    &#34;&#34;&#34;Send a reaction. Protip: you can use e.g. \N{GRINNING FACE} in python&#34;&#34;&#34;
-    react = {
-        &#34;command&#34;: &#34;sendReaction&#34;,
-        &#34;emoji&#34;: emoji,
-        &#34;target-author&#34;: target_msg.source,
-        &#34;target-timestamp&#34;: target_msg.timestamp,
-    }
-    if target_msg.group:
-        react[&#34;group&#34;] = target_msg.group
-    else:
-        react[&#34;recipient&#34;] = [target_msg.source]
-    await self.signalcli_input_queue.put(react)</code></pre>
-</details>
-</dd>
-<dt id="core.Signal.set_profile"><code class="name flex">
-<span>async def <span class="ident">set_profile</span></span>(<span>self) ‑> None</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Set signal profile. Note that this will overwrite any mobilecoin address</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def set_profile(self) -&gt; None:
-    &#34;&#34;&#34;Set signal profile. Note that this will overwrite any mobilecoin address&#34;&#34;&#34;
-    env = utils.get_secret(&#34;ENV&#34;)
-    profile = {
-        &#34;command&#34;: &#34;updateProfile&#34;,
-        &#34;given-name&#34;: &#34;localbot&#34; if utils.LOCAL else &#34;forestbot&#34;,
-        &#34;family-name&#34;: &#34;&#34; if env == &#34;prod&#34; else env,  # maybe not?
-        &#34;avatar&#34;: &#34;avatar.png&#34;,
-    }
-    await self.signalcli_input_queue.put(profile)
-    logging.info(profile)</code></pre>
-</details>
-</dd>
-<dt id="core.Signal.signalcli_input_iter"><code class="name flex">
-<span>async def <span class="ident">signalcli_input_iter</span></span>(<span>self) ‑> AsyncIterator[dict]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Provides an asynchronous iterator over pending signal-cli commands</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def signalcli_input_iter(self) -&gt; AsyncIterator[dict]:
-    &#34;&#34;&#34;Provides an asynchronous iterator over pending signal-cli commands&#34;&#34;&#34;
-    while True:
-        command = await self.signalcli_input_queue.get()
-        yield command</code></pre>
-</details>
-</dd>
-<dt id="core.Signal.signalcli_output_iter"><code class="name flex">
-<span>async def <span class="ident">signalcli_output_iter</span></span>(<span>self) ‑> AsyncIterator[<a title="core.Message" href="#core.Message">Message</a>]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Provides an asynchronous iterator over messages on the queue.
-See Bot for how messages and consumed and dispatched</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def signalcli_output_iter(self) -&gt; AsyncIterator[Message]:
-    &#34;&#34;&#34;Provides an asynchronous iterator over messages on the queue.
-    See Bot for how messages and consumed and dispatched&#34;&#34;&#34;
-    while True:
-        message = await self.signalcli_output_queue.get()
-        yield message</code></pre>
-</details>
-</dd>
 <dt id="core.Signal.start_process"><code class="name flex">
 <span>async def <span class="ident">start_process</span></span>(<span>self) ‑> None</span>
 </code></dt>
@@ -1464,6 +901,243 @@ See Bot for how messages and consumed and dispatched</p></div>
         sys.exit(1)</code></pre>
 </details>
 </dd>
+<dt id="core.Signal.async_shutdown"><code class="name flex">
+<span>async def <span class="ident">async_shutdown</span></span>(<span>self, *_: Any, wait: bool = False) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Upload our datastore, close postgres connections pools, kill signal-cli, exit</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def async_shutdown(self, *_: Any, wait: bool = False) -&gt; None:
+    &#34;&#34;&#34;Upload our datastore, close postgres connections pools, kill signal-cli, exit&#34;&#34;&#34;
+    logging.info(&#34;starting async_shutdown&#34;)
+    await self.datastore.upload()
+    if self.proc:
+        try:
+            self.proc.kill()
+            if wait:
+                await self.proc.wait()
+                await self.datastore.upload()
+        except ProcessLookupError:
+            logging.info(&#34;no signal-cli process&#34;)
+    await self.datastore.mark_freed()
+    await pghelp.close_pools()
+    # this still deadlocks. see https://github.com/forestcontact/forest-draft/issues/10
+    if datastore._memfs_process:
+        executor = datastore._memfs_process._get_executor()
+        logging.info(executor)
+        executor.shutdown(wait=False, cancel_futures=True)
+    logging.info(&#34;exited&#34;.center(60, &#34;=&#34;))
+    sys.exit(0)
+    logging.info(&#34;called sys.exit but still running, trying os._exit&#34;)
+    os._exit(1)</code></pre>
+</details>
+</dd>
+<dt id="core.Signal.handle_signalcli_raw_output"><code class="name flex">
+<span>async def <span class="ident">handle_signalcli_raw_output</span></span>(<span>self, stream: asyncio.streams.StreamReader) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Read signal-cli output but delegate handling it</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def handle_signalcli_raw_output(self, stream: StreamReader) -&gt; None:
+    &#34;&#34;&#34;Read signal-cli output but delegate handling it&#34;&#34;&#34;
+    while True:
+        line = (await stream.readline()).decode().strip()
+        if not line:
+            break
+        await self.handle_signalcli_raw_line(line)
+    logging.info(&#34;stopped reading signal-cli stdout&#34;)</code></pre>
+</details>
+</dd>
+<dt id="core.Signal.handle_signalcli_raw_line"><code class="name flex">
+<span>async def <span class="ident">handle_signalcli_raw_line</span></span>(<span>self, line: str) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Try to parse a single line of signal-cli output. If it's a message, enqueue it</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def handle_signalcli_raw_line(self, line: str) -&gt; None:
+    &#34;&#34;&#34;Try to parse a single line of signal-cli output. If it&#39;s a message, enqueue it&#34;&#34;&#34;
+    # TODO: maybe output and color non-json. pretty-print errors
+    # unrelatedly, try to sensibly color the other logging stuff like http logs
+    # fly / db / asyncio and other lib warnings / java / signal logic and networking
+    try:
+        blob = json.loads(line)
+    except json.JSONDecodeError:
+        logging.info(&#34;signal: %s&#34;, line)
+        return
+    if not isinstance(blob, dict):  # e.g. a timestamp
+        return
+    if &#34;error&#34; in blob:
+        if &#34;traceback&#34; in blob:
+            exception, *tb = blob[&#34;traceback&#34;].split(&#34;\n&#34;)
+            logging.error(termcolor.colored(exception, &#34;red&#34;))
+            # maybe also send this to admin as a signal message
+            for _line in tb:
+                logging.error(_line)
+        else:
+            logging.error(termcolor.colored(blob[&#34;error&#34;], &#34;red&#34;))
+        return
+    msg = Message(blob)
+    if msg.full_text:  # and utils.get_secret(&#34;I_AM_NOT_A_FEDERAL_AGENT&#34;):
+        logging.info(&#34;signal: %s&#34;, line)
+    await self.signalcli_output_queue.put(msg)
+    return</code></pre>
+</details>
+</dd>
+<dt id="core.Signal.signalcli_output_iter"><code class="name flex">
+<span>async def <span class="ident">signalcli_output_iter</span></span>(<span>self) ‑> AsyncIterator[<a title="core.Message" href="#core.Message">Message</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Provides an asynchronous iterator over messages on the queue.
+See Bot for how messages and consumed and dispatched</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def signalcli_output_iter(self) -&gt; AsyncIterator[Message]:
+    &#34;&#34;&#34;Provides an asynchronous iterator over messages on the queue.
+    See Bot for how messages and consumed and dispatched&#34;&#34;&#34;
+    while True:
+        message = await self.signalcli_output_queue.get()
+        yield message</code></pre>
+</details>
+</dd>
+<dt id="core.Signal.set_profile"><code class="name flex">
+<span>async def <span class="ident">set_profile</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Set signal profile. Note that this will overwrite any mobilecoin address</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def set_profile(self) -&gt; None:
+    &#34;&#34;&#34;Set signal profile. Note that this will overwrite any mobilecoin address&#34;&#34;&#34;
+    env = utils.get_secret(&#34;ENV&#34;)
+    profile = {
+        &#34;command&#34;: &#34;updateProfile&#34;,
+        &#34;given-name&#34;: &#34;localbot&#34; if utils.LOCAL else &#34;forestbot&#34;,
+        &#34;family-name&#34;: &#34;&#34; if env == &#34;prod&#34; else env,  # maybe not?
+        &#34;avatar&#34;: &#34;avatar.png&#34;,
+    }
+    await self.signalcli_input_queue.put(profile)
+    logging.info(profile)</code></pre>
+</details>
+</dd>
+<dt id="core.Signal.send_message"><code class="name flex">
+<span>async def <span class="ident">send_message</span></span>(<span>self, recipient: Optional[str], msg: Union[str, list, dict[str, str], ForwardRef(None)], group: Optional[str] = None, endsession: bool = False, attachments: Optional[list] = None) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds send command with specified recipient and msg, writes to signal-cli.
+Prettyprints dict msgs, sends multiple messages for lists. Also does groups,
+attachments, and endsession</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def send_message(  # pylint: disable=too-many-arguments
+    self,
+    recipient: Optional[str],
+    msg: Response,
+    group: Optional[str] = None,  # maybe combine this with recipient?
+    endsession: bool = False,
+    attachments: Optional[list[str]] = None,
+) -&gt; None:
+    &#34;&#34;&#34;Builds send command with specified recipient and msg, writes to signal-cli.
+    Prettyprints dict msgs, sends multiple messages for lists. Also does groups,
+    attachments, and endsession&#34;&#34;&#34;
+    if isinstance(msg, list):
+        for m in msg:
+            await self.send_message(recipient, m)
+        return
+    if isinstance(msg, dict):
+        msg = &#34;\n&#34;.join((f&#34;{key}:\t{value}&#34; for key, value in msg.items()))
+    json_command: JSON = {
+        &#34;command&#34;: &#34;send&#34;,
+        &#34;message&#34;: msg,
+    }
+    if endsession:
+        json_command[&#34;endsession&#34;] = True
+    if attachments:
+        json_command[&#34;attachment&#34;] = attachments
+    if group:
+        json_command[&#34;group&#34;] = group
+    elif recipient:
+        try:
+            assert recipient == utils.signal_format(recipient)
+        except (AssertionError, NumberParseException) as e:
+            logging.error(e)
+            return
+        json_command[&#34;recipient&#34;] = [str(recipient)]
+    await self.signalcli_input_queue.put(json_command)
+    return</code></pre>
+</details>
+</dd>
+<dt id="core.Signal.respond"><code class="name flex">
+<span>async def <span class="ident">respond</span></span>(<span>self, target_msg: <a title="core.Message" href="#core.Message">Message</a>, msg: Union[str, list, dict]) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Respond to a message depending on whether it's a DM or group</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def respond(self, target_msg: Message, msg: Union[str, list, dict]) -&gt; None:
+    &#34;&#34;&#34;Respond to a message depending on whether it&#39;s a DM or group&#34;&#34;&#34;
+    if target_msg.group:
+        await self.send_message(None, msg, group=target_msg.group)
+    else:
+        await self.send_message(target_msg.source, msg)</code></pre>
+</details>
+</dd>
+<dt id="core.Signal.send_reaction"><code class="name flex">
+<span>async def <span class="ident">send_reaction</span></span>(<span>self, target_msg: <a title="core.Message" href="#core.Message">Message</a>, emoji: str) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Send a reaction. Protip: you can use e.g. 😀 in python</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def send_reaction(self, target_msg: Message, emoji: str) -&gt; None:
+    &#34;&#34;&#34;Send a reaction. Protip: you can use e.g. \N{GRINNING FACE} in python&#34;&#34;&#34;
+    react = {
+        &#34;command&#34;: &#34;sendReaction&#34;,
+        &#34;emoji&#34;: emoji,
+        &#34;target-author&#34;: target_msg.source,
+        &#34;target-timestamp&#34;: target_msg.timestamp,
+    }
+    if target_msg.group:
+        react[&#34;group&#34;] = target_msg.group
+    else:
+        react[&#34;recipient&#34;] = [target_msg.source]
+    await self.signalcli_input_queue.put(react)</code></pre>
+</details>
+</dd>
+<dt id="core.Signal.signalcli_input_iter"><code class="name flex">
+<span>async def <span class="ident">signalcli_input_iter</span></span>(<span>self) ‑> AsyncIterator[dict]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Provides an asynchronous iterator over pending signal-cli commands</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def signalcli_input_iter(self) -&gt; AsyncIterator[dict]:
+    &#34;&#34;&#34;Provides an asynchronous iterator over pending signal-cli commands&#34;&#34;&#34;
+    while True:
+        command = await self.signalcli_input_queue.get()
+        yield command</code></pre>
+</details>
+</dd>
 <dt id="core.Signal.write_commands"><code class="name flex">
 <span>async def <span class="ident">write_commands</span></span>(<span>self, pipe: asyncio.streams.StreamWriter) ‑> None</span>
 </code></dt>
@@ -1481,6 +1155,332 @@ See Bot for how messages and consumed and dispatched</p></div>
 </details>
 </dd>
 </dl>
+</dd>
+<dt id="core.Bot"><code class="flex name class">
+<span>class <span class="ident">Bot</span></span>
+<span>(</span><span>*args: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Handles messages and command dispatch, as well as basic commands.
+Must be instantiated within a running async loop.
+Subclass this with your own commands.</p>
+<p>Creates AND STARTS a bot that routes commands to do_x handlers</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Bot(Signal):
+    &#34;&#34;&#34;Handles messages and command dispatch, as well as basic commands.
+    Must be instantiated within a running async loop.
+    Subclass this with your own commands.
+    &#34;&#34;&#34;
+
+    def __init__(self, *args: str) -&gt; None:
+        &#34;&#34;&#34;Creates AND STARTS a bot that routes commands to do_x handlers&#34;&#34;&#34;
+        self.client_session = aiohttp.ClientSession()
+        self.mobster = payments_monitor.Mobster()
+        super().__init__(*args)
+        asyncio.create_task(self.start_process())
+        asyncio.create_task(self.handle_messages())
+        if utils.get_secret(&#34;MONITOR_WALLET&#34;):
+            # currently spams and re-credits the same invoice each reboot
+            asyncio.create_task(self.mobster.monitor_wallet())
+
+    async def handle_messages(self) -&gt; None:
+        &#34;&#34;&#34;Read messages from the queue and pass each message to handle_message
+        If that returns a non-empty string, send it as a response&#34;&#34;&#34;
+        async for message in self.signalcli_output_iter():
+            # potentially stick a try-catch block here and send errors to admin
+            response = await self.handle_message(message)
+            if response:
+                await self.respond(message, response)
+
+    async def handle_message(self, message: Message) -&gt; Response:
+        &#34;&#34;&#34;Method dispatch to do_x commands and goodies.
+        Overwrite this to add your own non-command logic,
+        but call super().handle_message(message) at the end&#34;&#34;&#34;
+        if message.command:
+            if hasattr(self, &#34;do_&#34; + message.command):
+                return await getattr(self, &#34;do_&#34; + message.command)(message)
+            suggest_help = &#34; Try /help.&#34; if hasattr(self, &#34;do_help&#34;) else &#34;&#34;
+            return f&#34;Sorry! Command {message.command} not recognized!&#34; + suggest_help
+        if message.text == &#34;TERMINATE&#34;:
+            return &#34;signal session reset&#34;
+        if message.text and not message.group:
+            return &#34;That didn&#39;t look like a valid command&#34;
+        if message.payment:
+            return await self.handle_payment(message)
+        return None
+
+    async def do_help(self, message: Message) -&gt; str:
+        &#34;&#34;&#34;List available commands. /help &lt;command&gt; gives you that command&#39;s documentation, if available&#34;&#34;&#34;
+        if message.arg1:
+            if hasattr(self, &#34;do_&#34; + message.arg1):
+                cmd = getattr(self, &#34;do_&#34; + message.arg1)
+                if cmd.__doc__:
+                    return cmd.__doc__
+                return f&#34;Sorry, {message.arg1} isn&#39;t documented&#34;
+        # TODO: filter aliases and indicate which commands are undocumented
+        return &#34;commands: &#34; + &#34;, &#34;.join(
+            k.removeprefix(&#34;do_&#34;) for k in dir(self) if k.startswith(&#34;do_&#34;)
+        )
+
+    async def do_printerfact(self, _: Message) -&gt; str:
+        &#34;Learn a fact about printers&#34;
+        async with self.client_session.get(&#34;https://colbyolson.com/printers&#34;) as resp:
+            fact = await resp.text()
+        return fact.strip()
+
+    async def do_ping(self, message: Message) -&gt; str:
+        &#34;&#34;&#34;pong&#34;&#34;&#34;
+        if message.text:
+            return f&#34;pong {message.text}&#34;
+        return &#34;pong&#34;
+
+    async def check_target_number(self, msg: Message) -&gt; Optional[str]:
+        &#34;&#34;&#34;Check if arg1 is a valid number. If it isn&#39;t, let the user know and return None&#34;&#34;&#34;
+        try:
+            logging.debug(&#34;checking %s&#34;, msg.arg1)
+            assert msg.arg1
+            parsed = pn.parse(msg.arg1, &#34;US&#34;)  # fixme: use PhoneNumberMatcher
+            assert pn.is_valid_number(parsed)
+            number = pn.format_number(parsed, pn.PhoneNumberFormat.E164)
+            return number
+        except (pn.phonenumberutil.NumberParseException, AssertionError):
+            await self.send_message(
+                msg.source,
+                f&#34;{msg.arg1} doesn&#39;t look a valid number or user. &#34;
+                &#34;did you include the country code?&#34;,
+            )
+            return None
+
+    async def handle_payment(self, message: Message) -&gt; str:
+        &#34;&#34;&#34;Decode the receipt, then update balances&#34;&#34;&#34;
+        logging.info(message.payment)
+        amount_pmob = await self.mobster.get_receipt_amount_pmob(
+            message.payment[&#34;receipt&#34;]
+        )
+        if amount_pmob is None:
+            return &#34;That looked like a payment, but we couldn&#39;t parse it&#34;
+        amount_mob = mc_util.pmob2mob(amount_pmob)
+        amount_usd_cents = round(amount_mob * await self.mobster.get_rate() * 100)
+        self.mobster.ledger_manager.put_mob_tx(
+            message.source,
+            amount_usd_cents,
+            amount_pmob,
+            message.payment.get(&#34;note&#34;),
+        )
+        await self.respond(
+            message,
+            f&#34;Thank you for sending {amount_mob} MOB ({amount_usd_cents/100} USD)&#34;,
+        )
+        return await self.payment_response(message)
+
+    async def payment_response(self, _: Message) -&gt; Response:
+        return &#34;This bot doesn&#39;t have a response for payments.&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="core.Signal" href="#core.Signal">Signal</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="core.Bot.handle_messages"><code class="name flex">
+<span>async def <span class="ident">handle_messages</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Read messages from the queue and pass each message to handle_message
+If that returns a non-empty string, send it as a response</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def handle_messages(self) -&gt; None:
+    &#34;&#34;&#34;Read messages from the queue and pass each message to handle_message
+    If that returns a non-empty string, send it as a response&#34;&#34;&#34;
+    async for message in self.signalcli_output_iter():
+        # potentially stick a try-catch block here and send errors to admin
+        response = await self.handle_message(message)
+        if response:
+            await self.respond(message, response)</code></pre>
+</details>
+</dd>
+<dt id="core.Bot.handle_message"><code class="name flex">
+<span>async def <span class="ident">handle_message</span></span>(<span>self, message: <a title="core.Message" href="#core.Message">Message</a>) ‑> Union[str, list, dict[str, str], ForwardRef(None)]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method dispatch to do_x commands and goodies.
+Overwrite this to add your own non-command logic,
+but call super().handle_message(message) at the end</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def handle_message(self, message: Message) -&gt; Response:
+    &#34;&#34;&#34;Method dispatch to do_x commands and goodies.
+    Overwrite this to add your own non-command logic,
+    but call super().handle_message(message) at the end&#34;&#34;&#34;
+    if message.command:
+        if hasattr(self, &#34;do_&#34; + message.command):
+            return await getattr(self, &#34;do_&#34; + message.command)(message)
+        suggest_help = &#34; Try /help.&#34; if hasattr(self, &#34;do_help&#34;) else &#34;&#34;
+        return f&#34;Sorry! Command {message.command} not recognized!&#34; + suggest_help
+    if message.text == &#34;TERMINATE&#34;:
+        return &#34;signal session reset&#34;
+    if message.text and not message.group:
+        return &#34;That didn&#39;t look like a valid command&#34;
+    if message.payment:
+        return await self.handle_payment(message)
+    return None</code></pre>
+</details>
+</dd>
+<dt id="core.Bot.do_help"><code class="name flex">
+<span>async def <span class="ident">do_help</span></span>(<span>self, message: <a title="core.Message" href="#core.Message">Message</a>) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>List available commands. /help <command> gives you that command's documentation, if available</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def do_help(self, message: Message) -&gt; str:
+    &#34;&#34;&#34;List available commands. /help &lt;command&gt; gives you that command&#39;s documentation, if available&#34;&#34;&#34;
+    if message.arg1:
+        if hasattr(self, &#34;do_&#34; + message.arg1):
+            cmd = getattr(self, &#34;do_&#34; + message.arg1)
+            if cmd.__doc__:
+                return cmd.__doc__
+            return f&#34;Sorry, {message.arg1} isn&#39;t documented&#34;
+    # TODO: filter aliases and indicate which commands are undocumented
+    return &#34;commands: &#34; + &#34;, &#34;.join(
+        k.removeprefix(&#34;do_&#34;) for k in dir(self) if k.startswith(&#34;do_&#34;)
+    )</code></pre>
+</details>
+</dd>
+<dt id="core.Bot.do_printerfact"><code class="name flex">
+<span>async def <span class="ident">do_printerfact</span></span>(<span>self, _: <a title="core.Message" href="#core.Message">Message</a>) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Learn a fact about printers</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def do_printerfact(self, _: Message) -&gt; str:
+    &#34;Learn a fact about printers&#34;
+    async with self.client_session.get(&#34;https://colbyolson.com/printers&#34;) as resp:
+        fact = await resp.text()
+    return fact.strip()</code></pre>
+</details>
+</dd>
+<dt id="core.Bot.do_ping"><code class="name flex">
+<span>async def <span class="ident">do_ping</span></span>(<span>self, message: <a title="core.Message" href="#core.Message">Message</a>) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>pong</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def do_ping(self, message: Message) -&gt; str:
+    &#34;&#34;&#34;pong&#34;&#34;&#34;
+    if message.text:
+        return f&#34;pong {message.text}&#34;
+    return &#34;pong&#34;</code></pre>
+</details>
+</dd>
+<dt id="core.Bot.check_target_number"><code class="name flex">
+<span>async def <span class="ident">check_target_number</span></span>(<span>self, msg: <a title="core.Message" href="#core.Message">Message</a>) ‑> Optional[str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Check if arg1 is a valid number. If it isn't, let the user know and return None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def check_target_number(self, msg: Message) -&gt; Optional[str]:
+    &#34;&#34;&#34;Check if arg1 is a valid number. If it isn&#39;t, let the user know and return None&#34;&#34;&#34;
+    try:
+        logging.debug(&#34;checking %s&#34;, msg.arg1)
+        assert msg.arg1
+        parsed = pn.parse(msg.arg1, &#34;US&#34;)  # fixme: use PhoneNumberMatcher
+        assert pn.is_valid_number(parsed)
+        number = pn.format_number(parsed, pn.PhoneNumberFormat.E164)
+        return number
+    except (pn.phonenumberutil.NumberParseException, AssertionError):
+        await self.send_message(
+            msg.source,
+            f&#34;{msg.arg1} doesn&#39;t look a valid number or user. &#34;
+            &#34;did you include the country code?&#34;,
+        )
+        return None</code></pre>
+</details>
+</dd>
+<dt id="core.Bot.handle_payment"><code class="name flex">
+<span>async def <span class="ident">handle_payment</span></span>(<span>self, message: <a title="core.Message" href="#core.Message">Message</a>) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Decode the receipt, then update balances</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def handle_payment(self, message: Message) -&gt; str:
+    &#34;&#34;&#34;Decode the receipt, then update balances&#34;&#34;&#34;
+    logging.info(message.payment)
+    amount_pmob = await self.mobster.get_receipt_amount_pmob(
+        message.payment[&#34;receipt&#34;]
+    )
+    if amount_pmob is None:
+        return &#34;That looked like a payment, but we couldn&#39;t parse it&#34;
+    amount_mob = mc_util.pmob2mob(amount_pmob)
+    amount_usd_cents = round(amount_mob * await self.mobster.get_rate() * 100)
+    self.mobster.ledger_manager.put_mob_tx(
+        message.source,
+        amount_usd_cents,
+        amount_pmob,
+        message.payment.get(&#34;note&#34;),
+    )
+    await self.respond(
+        message,
+        f&#34;Thank you for sending {amount_mob} MOB ({amount_usd_cents/100} USD)&#34;,
+    )
+    return await self.payment_response(message)</code></pre>
+</details>
+</dd>
+<dt id="core.Bot.payment_response"><code class="name flex">
+<span>async def <span class="ident">payment_response</span></span>(<span>self, _: <a title="core.Message" href="#core.Message">Message</a>) ‑> Union[str, list, dict[str, str], ForwardRef(None)]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def payment_response(self, _: Message) -&gt; Response:
+    return &#34;This bot doesn&#39;t have a response for payments.&#34;</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="core.Signal" href="#core.Signal">Signal</a></b></code>:
+<ul class="hlist">
+<li><code><a title="core.Signal.async_shutdown" href="#core.Signal.async_shutdown">async_shutdown</a></code></li>
+<li><code><a title="core.Signal.handle_signalcli_raw_line" href="#core.Signal.handle_signalcli_raw_line">handle_signalcli_raw_line</a></code></li>
+<li><code><a title="core.Signal.handle_signalcli_raw_output" href="#core.Signal.handle_signalcli_raw_output">handle_signalcli_raw_output</a></code></li>
+<li><code><a title="core.Signal.respond" href="#core.Signal.respond">respond</a></code></li>
+<li><code><a title="core.Signal.send_message" href="#core.Signal.send_message">send_message</a></code></li>
+<li><code><a title="core.Signal.send_reaction" href="#core.Signal.send_reaction">send_reaction</a></code></li>
+<li><code><a title="core.Signal.set_profile" href="#core.Signal.set_profile">set_profile</a></code></li>
+<li><code><a title="core.Signal.signalcli_input_iter" href="#core.Signal.signalcli_input_iter">signalcli_input_iter</a></code></li>
+<li><code><a title="core.Signal.signalcli_output_iter" href="#core.Signal.signalcli_output_iter">signalcli_output_iter</a></code></li>
+<li><code><a title="core.Signal.start_process" href="#core.Signal.start_process">start_process</a></code></li>
+<li><code><a title="core.Signal.sync_signal_handler" href="#core.Signal.sync_signal_handler">sync_signal_handler</a></code></li>
+<li><code><a title="core.Signal.write_commands" href="#core.Signal.write_commands">write_commands</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 </dl>
 </section>
@@ -1500,37 +1500,37 @@ See Bot for how messages and consumed and dispatched</p></div>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="core.Bot" href="#core.Bot">Bot</a></code></h4>
-<ul class="two-column">
-<li><code><a title="core.Bot.check_target_number" href="#core.Bot.check_target_number">check_target_number</a></code></li>
-<li><code><a title="core.Bot.do_help" href="#core.Bot.do_help">do_help</a></code></li>
-<li><code><a title="core.Bot.do_ping" href="#core.Bot.do_ping">do_ping</a></code></li>
-<li><code><a title="core.Bot.do_printerfact" href="#core.Bot.do_printerfact">do_printerfact</a></code></li>
-<li><code><a title="core.Bot.handle_message" href="#core.Bot.handle_message">handle_message</a></code></li>
-<li><code><a title="core.Bot.handle_messages" href="#core.Bot.handle_messages">handle_messages</a></code></li>
-<li><code><a title="core.Bot.handle_payment" href="#core.Bot.handle_payment">handle_payment</a></code></li>
-<li><code><a title="core.Bot.payment_response" href="#core.Bot.payment_response">payment_response</a></code></li>
-</ul>
-</li>
-<li>
 <h4><code><a title="core.Message" href="#core.Message">Message</a></code></h4>
 </li>
 <li>
 <h4><code><a title="core.Signal" href="#core.Signal">Signal</a></code></h4>
 <ul class="">
-<li><code><a title="core.Signal.async_shutdown" href="#core.Signal.async_shutdown">async_shutdown</a></code></li>
-<li><code><a title="core.Signal.handle_signalcli_raw_line" href="#core.Signal.handle_signalcli_raw_line">handle_signalcli_raw_line</a></code></li>
-<li><code><a title="core.Signal.handle_signalcli_raw_output" href="#core.Signal.handle_signalcli_raw_output">handle_signalcli_raw_output</a></code></li>
-<li><code><a title="core.Signal.respond" href="#core.Signal.respond">respond</a></code></li>
-<li><code><a title="core.Signal.send_message" href="#core.Signal.send_message">send_message</a></code></li>
-<li><code><a title="core.Signal.send_reaction" href="#core.Signal.send_reaction">send_reaction</a></code></li>
-<li><code><a title="core.Signal.set_profile" href="#core.Signal.set_profile">set_profile</a></code></li>
-<li><code><a title="core.Signal.sigints" href="#core.Signal.sigints">sigints</a></code></li>
-<li><code><a title="core.Signal.signalcli_input_iter" href="#core.Signal.signalcli_input_iter">signalcli_input_iter</a></code></li>
-<li><code><a title="core.Signal.signalcli_output_iter" href="#core.Signal.signalcli_output_iter">signalcli_output_iter</a></code></li>
 <li><code><a title="core.Signal.start_process" href="#core.Signal.start_process">start_process</a></code></li>
 <li><code><a title="core.Signal.sync_signal_handler" href="#core.Signal.sync_signal_handler">sync_signal_handler</a></code></li>
+<li><code><a title="core.Signal.async_shutdown" href="#core.Signal.async_shutdown">async_shutdown</a></code></li>
+<li><code><a title="core.Signal.handle_signalcli_raw_output" href="#core.Signal.handle_signalcli_raw_output">handle_signalcli_raw_output</a></code></li>
+<li><code><a title="core.Signal.handle_signalcli_raw_line" href="#core.Signal.handle_signalcli_raw_line">handle_signalcli_raw_line</a></code></li>
+<li><code><a title="core.Signal.signalcli_output_iter" href="#core.Signal.signalcli_output_iter">signalcli_output_iter</a></code></li>
+<li><code><a title="core.Signal.set_profile" href="#core.Signal.set_profile">set_profile</a></code></li>
+<li><code><a title="core.Signal.send_message" href="#core.Signal.send_message">send_message</a></code></li>
+<li><code><a title="core.Signal.respond" href="#core.Signal.respond">respond</a></code></li>
+<li><code><a title="core.Signal.send_reaction" href="#core.Signal.send_reaction">send_reaction</a></code></li>
+<li><code><a title="core.Signal.signalcli_input_iter" href="#core.Signal.signalcli_input_iter">signalcli_input_iter</a></code></li>
 <li><code><a title="core.Signal.write_commands" href="#core.Signal.write_commands">write_commands</a></code></li>
+<li><code><a title="core.Signal.sigints" href="#core.Signal.sigints">sigints</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="core.Bot" href="#core.Bot">Bot</a></code></h4>
+<ul class="two-column">
+<li><code><a title="core.Bot.handle_messages" href="#core.Bot.handle_messages">handle_messages</a></code></li>
+<li><code><a title="core.Bot.handle_message" href="#core.Bot.handle_message">handle_message</a></code></li>
+<li><code><a title="core.Bot.do_help" href="#core.Bot.do_help">do_help</a></code></li>
+<li><code><a title="core.Bot.do_printerfact" href="#core.Bot.do_printerfact">do_printerfact</a></code></li>
+<li><code><a title="core.Bot.do_ping" href="#core.Bot.do_ping">do_ping</a></code></li>
+<li><code><a title="core.Bot.check_target_number" href="#core.Bot.check_target_number">check_target_number</a></code></li>
+<li><code><a title="core.Bot.handle_payment" href="#core.Bot.handle_payment">handle_payment</a></code></li>
+<li><code><a title="core.Bot.payment_response" href="#core.Bot.payment_response">payment_response</a></code></li>
 </ul>
 </li>
 </ul>

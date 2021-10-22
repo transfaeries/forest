@@ -76,35 +76,6 @@ def b64_receipt_to_full_service_receipt(b64_string: str) -&gt; dict:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="mc_util.b64_receipt_to_full_service_receipt"><code class="name flex">
-<span>def <span class="ident">b64_receipt_to_full_service_receipt</span></span>(<span>b64_string: str) ‑> dict</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Convert a b64-encoded protobuf Receipt into a full-service receipt object</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def b64_receipt_to_full_service_receipt(b64_string: str) -&gt; dict:
-    &#34;&#34;&#34;Convert a b64-encoded protobuf Receipt into a full-service receipt object&#34;&#34;&#34;
-    receipt_bytes = base64.b64decode(b64_string)
-    receipt = mobilecoin.Receipt.FromString(receipt_bytes)  # type: ignore # pylint: disable=no-member
-
-    full_service_receipt = {
-        &#34;object&#34;: &#34;receiver_receipt&#34;,
-        &#34;public_key&#34;: receipt.public_key.SerializeToString().hex(),
-        &#34;confirmation&#34;: receipt.confirmation.SerializeToString().hex(),
-        &#34;tombstone_block&#34;: str(int(receipt.tombstone_block)),
-        &#34;amount&#34;: {
-            &#34;object&#34;: &#34;amount&#34;,
-            &#34;commitment&#34;: receipt.amount.commitment.data.hex(),
-            &#34;masked_value&#34;: str(int(receipt.amount.masked_value)),
-        },
-    }
-
-    return full_service_receipt</code></pre>
-</details>
-</dd>
 <dt id="mc_util.mob2pmob"><code class="name flex">
 <span>def <span class="ident">mob2pmob</span></span>(<span>x: Union[decimal.Decimal, float, int]) ‑> int</span>
 </code></dt>
@@ -134,6 +105,35 @@ def b64_receipt_to_full_service_receipt(b64_string: str) -&gt; dict:
     return float(result)</code></pre>
 </details>
 </dd>
+<dt id="mc_util.b64_receipt_to_full_service_receipt"><code class="name flex">
+<span>def <span class="ident">b64_receipt_to_full_service_receipt</span></span>(<span>b64_string: str) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert a b64-encoded protobuf Receipt into a full-service receipt object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def b64_receipt_to_full_service_receipt(b64_string: str) -&gt; dict:
+    &#34;&#34;&#34;Convert a b64-encoded protobuf Receipt into a full-service receipt object&#34;&#34;&#34;
+    receipt_bytes = base64.b64decode(b64_string)
+    receipt = mobilecoin.Receipt.FromString(receipt_bytes)  # type: ignore # pylint: disable=no-member
+
+    full_service_receipt = {
+        &#34;object&#34;: &#34;receiver_receipt&#34;,
+        &#34;public_key&#34;: receipt.public_key.SerializeToString().hex(),
+        &#34;confirmation&#34;: receipt.confirmation.SerializeToString().hex(),
+        &#34;tombstone_block&#34;: str(int(receipt.tombstone_block)),
+        &#34;amount&#34;: {
+            &#34;object&#34;: &#34;amount&#34;,
+            &#34;commitment&#34;: receipt.amount.commitment.data.hex(),
+            &#34;masked_value&#34;: str(int(receipt.amount.masked_value)),
+        },
+    }
+
+    return full_service_receipt</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -147,9 +147,9 @@ def b64_receipt_to_full_service_receipt(b64_string: str) -&gt; dict:
 <ul id="index">
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="mc_util.b64_receipt_to_full_service_receipt" href="#mc_util.b64_receipt_to_full_service_receipt">b64_receipt_to_full_service_receipt</a></code></li>
 <li><code><a title="mc_util.mob2pmob" href="#mc_util.mob2pmob">mob2pmob</a></code></li>
 <li><code><a title="mc_util.pmob2mob" href="#mc_util.pmob2mob">pmob2mob</a></code></li>
+<li><code><a title="mc_util.b64_receipt_to_full_service_receipt" href="#mc_util.b64_receipt_to_full_service_receipt">b64_receipt_to_full_service_receipt</a></code></li>
 </ul>
 </li>
 </ul>

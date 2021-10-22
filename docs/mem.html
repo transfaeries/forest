@@ -339,6 +339,54 @@ if __name__ == &#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="mem.Property"><code class="flex name class">
+<span>class <span class="ident">Property</span></span>
+<span>(</span><span>st_mode=493, st_nlink=0, st_size=0, st_ctime=0, st_mtime=0, st_atime=0, st_gid=0, st_uid=0, st_blocks=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Property(dict):
+    def __init__(
+        self,
+        st_mode=493,
+        st_nlink=0,
+        st_size=0,
+        st_ctime=0,
+        st_mtime=0,
+        st_atime=0,
+        st_gid=0,
+        st_uid=0,
+        st_blocks=0,
+    ):
+        self.st_mode = st_mode
+        self.st_nlink = st_nlink
+        self.st_size = st_size
+        self.st_ctime = st_ctime
+        self.st_mtime = st_mtime
+        self.st_atime = st_atime
+        self.st_gid = os.getgid()
+        self.st_uid = os.getuid()
+        self.st_blocks = st_blocks</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+</dd>
 <dt id="mem.Directory"><code class="flex name class">
 <span>class <span class="ident">Directory</span></span>
 <span>(</span><span>files, directories, properties)</span>
@@ -630,6 +678,21 @@ or the corresponding system call man page.</p></div>
 </ul>
 <h3>Methods</h3>
 <dl>
+<dt id="mem.Memory.init"><code class="name flex">
+<span>def <span class="ident">init</span></span>(<span>self, path) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Called on filesystem initialization. (Path is always /)</p>
+<p>Use it instead of <strong>init</strong> if you start threads on initialization.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def init(self, path) -&gt; None:
+    if self.livelock is not None:
+        self.livelock.release()</code></pre>
+</details>
+</dd>
 <dt id="mem.Memory.chmod"><code class="name flex">
 <span>def <span class="ident">chmod</span></span>(<span>self, path, mode)</span>
 </code></dt>
@@ -700,53 +763,6 @@ and return 0.</p></div>
     return self.fd</code></pre>
 </details>
 </dd>
-<dt id="mem.Memory.get_dir"><code class="name flex">
-<span>def <span class="ident">get_dir</span></span>(<span>self, path)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_dir(self, path):
-    path = path.rstrip(&#34;/&#34;)
-    patharray = path.split(&#34;/&#34;)
-    if len(patharray) &lt;= 1:
-        return self.filesystem[&#34;/&#34;]
-    patharray.pop(0)
-    location = self.filesystem[&#34;/&#34;]
-    while patharray:
-        dirpath = patharray.pop(0)
-        if dirpath in location.directories:
-            location = location.directories[dirpath]
-        else:
-            return None
-    return location</code></pre>
-</details>
-</dd>
-<dt id="mem.Memory.get_file"><code class="name flex">
-<span>def <span class="ident">get_file</span></span>(<span>self, path)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_file(self, path):
-    if path[-1] == &#34;/&#34;:
-        return None
-    else:
-        patharray = path.split(&#34;/&#34;)
-        filename = patharray.pop()
-        dirname = &#34;/&#34;.join(path.split(&#34;/&#34;)[:-1])
-        location = self.get_dir(dirname)
-        if location and filename in location.files:
-            return location.files[filename]
-        return None</code></pre>
-</details>
-</dd>
 <dt id="mem.Memory.getattr"><code class="name flex">
 <span>def <span class="ident">getattr</span></span>(<span>self, path, fh=None)</span>
 </code></dt>
@@ -788,21 +804,6 @@ the directory, while Linux counts only the subdirectories.</p></div>
         return attrs[name]
     except KeyError:
         return b&#34;&#34;</code></pre>
-</details>
-</dd>
-<dt id="mem.Memory.init"><code class="name flex">
-<span>def <span class="ident">init</span></span>(<span>self, path) ‑> None</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Called on filesystem initialization. (Path is always /)</p>
-<p>Use it instead of <strong>init</strong> if you start threads on initialization.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def init(self, path) -&gt; None:
-    if self.livelock is not None:
-        self.livelock.release()</code></pre>
 </details>
 </dd>
 <dt id="mem.Memory.listxattr"><code class="name flex">
@@ -1099,55 +1100,54 @@ statvfs(3).</p>
     return len(data)</code></pre>
 </details>
 </dd>
-</dl>
-</dd>
-<dt id="mem.Property"><code class="flex name class">
-<span>class <span class="ident">Property</span></span>
-<span>(</span><span>st_mode=493, st_nlink=0, st_size=0, st_ctime=0, st_mtime=0, st_atime=0, st_gid=0, st_uid=0, st_blocks=0)</span>
+<dt id="mem.Memory.get_file"><code class="name flex">
+<span>def <span class="ident">get_file</span></span>(<span>self, path)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>dict() -&gt; new empty dictionary
-dict(mapping) -&gt; new dictionary initialized from a mapping object's
-(key, value) pairs
-dict(iterable) -&gt; new dictionary initialized as if via:
-d = {}
-for k, v in iterable:
-d[k] = v
-dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
-in the keyword argument list.
-For example:
-dict(one=1, two=2)</p></div>
+<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Property(dict):
-    def __init__(
-        self,
-        st_mode=493,
-        st_nlink=0,
-        st_size=0,
-        st_ctime=0,
-        st_mtime=0,
-        st_atime=0,
-        st_gid=0,
-        st_uid=0,
-        st_blocks=0,
-    ):
-        self.st_mode = st_mode
-        self.st_nlink = st_nlink
-        self.st_size = st_size
-        self.st_ctime = st_ctime
-        self.st_mtime = st_mtime
-        self.st_atime = st_atime
-        self.st_gid = os.getgid()
-        self.st_uid = os.getuid()
-        self.st_blocks = st_blocks</code></pre>
+<pre><code class="python">def get_file(self, path):
+    if path[-1] == &#34;/&#34;:
+        return None
+    else:
+        patharray = path.split(&#34;/&#34;)
+        filename = patharray.pop()
+        dirname = &#34;/&#34;.join(path.split(&#34;/&#34;)[:-1])
+        location = self.get_dir(dirname)
+        if location and filename in location.files:
+            return location.files[filename]
+        return None</code></pre>
 </details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>builtins.dict</li>
-</ul>
+</dd>
+<dt id="mem.Memory.get_dir"><code class="name flex">
+<span>def <span class="ident">get_dir</span></span>(<span>self, path)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_dir(self, path):
+    path = path.rstrip(&#34;/&#34;)
+    patharray = path.split(&#34;/&#34;)
+    if len(patharray) &lt;= 1:
+        return self.filesystem[&#34;/&#34;]
+    patharray.pop(0)
+    location = self.filesystem[&#34;/&#34;]
+    while patharray:
+        dirpath = patharray.pop(0)
+        if dirpath in location.directories:
+            location = location.directories[dirpath]
+        else:
+            return None
+    return location</code></pre>
+</details>
+</dd>
+</dl>
 </dd>
 </dl>
 </section>
@@ -1161,6 +1161,9 @@ dict(one=1, two=2)</p></div>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="mem.Property" href="#mem.Property">Property</a></code></h4>
+</li>
+<li>
 <h4><code><a title="mem.Directory" href="#mem.Directory">Directory</a></code></h4>
 </li>
 <li>
@@ -1169,14 +1172,12 @@ dict(one=1, two=2)</p></div>
 <li>
 <h4><code><a title="mem.Memory" href="#mem.Memory">Memory</a></code></h4>
 <ul class="two-column">
+<li><code><a title="mem.Memory.init" href="#mem.Memory.init">init</a></code></li>
 <li><code><a title="mem.Memory.chmod" href="#mem.Memory.chmod">chmod</a></code></li>
 <li><code><a title="mem.Memory.chown" href="#mem.Memory.chown">chown</a></code></li>
 <li><code><a title="mem.Memory.create" href="#mem.Memory.create">create</a></code></li>
-<li><code><a title="mem.Memory.get_dir" href="#mem.Memory.get_dir">get_dir</a></code></li>
-<li><code><a title="mem.Memory.get_file" href="#mem.Memory.get_file">get_file</a></code></li>
 <li><code><a title="mem.Memory.getattr" href="#mem.Memory.getattr">getattr</a></code></li>
 <li><code><a title="mem.Memory.getxattr" href="#mem.Memory.getxattr">getxattr</a></code></li>
-<li><code><a title="mem.Memory.init" href="#mem.Memory.init">init</a></code></li>
 <li><code><a title="mem.Memory.listxattr" href="#mem.Memory.listxattr">listxattr</a></code></li>
 <li><code><a title="mem.Memory.mkdir" href="#mem.Memory.mkdir">mkdir</a></code></li>
 <li><code><a title="mem.Memory.open" href="#mem.Memory.open">open</a></code></li>
@@ -1193,10 +1194,9 @@ dict(one=1, two=2)</p></div>
 <li><code><a title="mem.Memory.unlink" href="#mem.Memory.unlink">unlink</a></code></li>
 <li><code><a title="mem.Memory.utimens" href="#mem.Memory.utimens">utimens</a></code></li>
 <li><code><a title="mem.Memory.write" href="#mem.Memory.write">write</a></code></li>
+<li><code><a title="mem.Memory.get_file" href="#mem.Memory.get_file">get_file</a></code></li>
+<li><code><a title="mem.Memory.get_dir" href="#mem.Memory.get_dir">get_dir</a></code></li>
 </ul>
-</li>
-<li>
-<h4><code><a title="mem.Property" href="#mem.Property">Property</a></code></h4>
 </li>
 </ul>
 </li>
