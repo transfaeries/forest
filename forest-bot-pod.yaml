@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: forest-bot-pod
+  namespace: forest-development
+  labels:
+    name: forest-bot-pod
+    app: forest-bot
+spec:
+  imagePullSecrets:
+    - name: faeries-docker-credentials
+  containers:
+  - name: forest-bot-container
+    image: mobilefaeries/forest-bot:latest
+    imagePullPolicy: Always
+    resources:
+      limits:
+        memory: "512Mi"
+        cpu: "1"
+    ports:
+      - containerPort: 8080
+        protocol: TCP
+
+    env:
+      - name: TELI_KEY
+        valueFrom:
+          secretKeyRef:
+            name: dev-secrets
+            key: TELI_KEY
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: dev-secrets
+            key: DATABASE_URL
+      - name: ADMIN
+        valueFrom:
+          secretKeyRef:
+            name: dev-secrets
+            key: ADMIN
+      - name: BOT_NUMBER
+        valueFrom:
+          secretKeyRef:
+            name: dev-secrets
+            key: BOT_NUMBER
+      - name: NO_MONITOR_WALLET
+        value: "1"
+      - name: NO_MEMFS
+        value: "1"
+      - name: ORDER
+        value: "1"
+      - name: GROUPS
+        value: "1"
+      - name: MIGRATE
+        value: "1"
