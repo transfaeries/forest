@@ -19,14 +19,14 @@ try:
 except ImportError:
     # maybe we're local?
     try:
-        import pghelp
-        import utils
+        import pghelp  # type: ignore
+        import utils  # type: ignore
     except ImportError:
         # i wasn't asking
         sys.path.append("forest")
         sys.path.append("..")
-        import pghelp  # pylint: disable=ungrouped-imports
-        import utils  # pylint: disable=ungrouped-imports
+        import pghelp  # type: ignore # pylint: disable=ungrouped-imports
+        import utils  # type: ignore # pylint: disable=ungrouped-imports
 if utils.get_secret("MIGRATE"):
     get_datastore = "SELECT account, datastore FROM {self.table} WHERE id=$1"
 else:
@@ -57,7 +57,7 @@ AccountPGExpressions = pghelp.PGExpressions(
         WHERE id=$1;",
     mark_account_freed="UPDATE {self.table} SET last_claim_ms = 0, \
         active_node_name = NULL WHERE id=$1;",
-    get_free_account="SELECT (id, datastore) FROM {self.table} \
+    get_free_account="SELECT id, datastore FROM {self.table} \
             WHERE active_node_name IS NULL \
             AND last_claim_ms = 0 \
             LIMIT 1;",
@@ -220,12 +220,13 @@ def setup_tmpdir() -> None:
     if utils.ROOT_DIR == ".":
         logging.warning("not setting up tmpdir")
         return
-    if utils.ROOT_DIR == "/tmp/local-signal/":
+    if utils.ROOT_DIR == "/tmp/local-signal/" and not utils.MEMFS:
         try:
             shutil.rmtree(utils.ROOT_DIR)
         except (FileNotFoundError, OSError) as e:
             logging.warning("couldn't remove rootdir: %s", e)
-    (Path(utils.ROOT_DIR) / "data").mkdir(exist_ok=True)
+    if not utils.MEMFS:
+        (Path(utils.ROOT_DIR) / "data").mkdir(exist_ok=True, parents=True)
     # assume we're running in the repo
     try:
         sigcli = utils.get_secret("SIGNAL_CLI_PATH") or "signal-cli"
@@ -237,7 +238,6 @@ def setup_tmpdir() -> None:
         logging.warning(e)
     logging.info("chdir to %s", utils.ROOT_DIR)
     os.chdir(utils.ROOT_DIR)
-    logging.info("not starting memfs because running locally")
     return
 
 
@@ -317,7 +317,7 @@ async def list_accounts(_args: argparse.Namespace) -> None:
         )
     ]:
         cols.append("notes")
-    query = f"select {' ,'.join(cols)} from signal_accounts"
+    query = f"select {' ,'.join(cols)} from signal_accounts order by id"
     accounts = await get_account_interface().execute(query)
     if not isinstance(accounts, list):
         return
