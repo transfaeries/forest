@@ -7,8 +7,15 @@ metadata:
     name: forest-bot-pod
     app: forest-bot
 spec:
+
   imagePullSecrets:
     - name: faeries-docker-credentials
+
+  volumes:
+    - name: signal-cli-data
+      persistentVolumeClaim:
+        claimName: forest-bot-data-pvc
+
   containers:
   - name: forest-bot-container
     image: mobilefaeries/forest-bot:latest
@@ -44,11 +51,13 @@ spec:
             key: BOT_NUMBER
       - name: NO_MONITOR_WALLET
         value: "1"
-      - name: NO_MEMFS
-        value: "1"
       - name: ORDER
         value: "1"
       - name: GROUPS
         value: "1"
-      - name: MIGRATE
+      - name: NO_MEMFS
         value: "1"
+
+    volumeMounts:
+      - name: signal-cli-data
+        mountPath: /tmp/local-signal
