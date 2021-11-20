@@ -14,7 +14,7 @@ spec:
     http:
       paths:
       - pathType: Prefix
-        path: "/"
+        path: "/inbound"
         backend:
           service:
             name: forest-bot-service
