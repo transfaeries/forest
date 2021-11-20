@@ -2,6 +2,9 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: forest-bot-ingress
+  namespace: forest-development
+  annotations: 
+    cert-manager.io/cluster-issuer: letsencrypt-production-http
   labels:
     name: forest-bot-ingress
     app: forest-bot
@@ -17,3 +20,8 @@ spec:
             name: forest-bot-service
             port: 
               number: 8080
+
+  tls:
+    - hosts:
+      - forest-bot.forest.mobilecoin.com
+      secretName: forest-bot.forest.mobilecoin.com-tls
