@@ -12,8 +12,11 @@ import base58
 import aiohttp
 import aioredis
 from aiohttp import web
+import openai
 from forest import utils
 from forest.core import Bot, Message, Response, app
+
+openai.api_key = utils.get_secret("OPENAI_API_KEY")
 
 if not utils.LOCAL:
     aws_cred = utils.get_secret("AWS_CREDENTIALS")
@@ -35,11 +38,13 @@ url = (
     or utils.get_secret("FLY_REDIS_CACHE_URL")
     or "redis://:ImVqcG9uMTdqMjc2MWRncjQi8a6c817565c7926c7c7e971b4782cf96a705bb20@forest-dev.redis.fly.io:10079"
 )
-#password, rest = url.removeprefix("redis://:").split("@")
-#host, port = rest.split(":")
-#redis = aioredis.Redis(host=host, port=int(port), password=password)
+# password, rest = url.removeprefix("redis://:").split("@")
+# host, port = rest.split(":")
+# redis = aioredis.Redis(host=host, port=int(port), password=password)
 
-redis =  aioredis.Redis(host="forest-redis.fly.dev", port="10000", password="speak-friend-and-enter")
+redis = aioredis.Redis(
+    host="forest-redis.fly.dev", port=10000, password="speak-friend-and-enter"
+)
 instance_id = "aws ec2 describe-instances --region us-east-1 | jq -r .Reservations[].Instances[].InstanceId"
 status = "aws ec2 describe-instances --region us-east-1| jq -r '..|.State?|.Name?|select(.!=null)'"
 start = "aws ec2 start-instances --region us-east-1 --instance-ids {}"
@@ -129,7 +134,10 @@ class Imogen(Bot):
         # await self.mobster.put_usd_tx(msg.sender, self.image_rate_cents, msg.text[:32])
         if state in ("stopped", "stopping"):
             # if not, turn it on
-            logging.info(await get_output(start.format(self.worker_instance_id)))
+            output = await get_output(start.format(self.worker_instance_id)))
+            logging.info(output)
+            if "InsufficientInstanceCapacity" in output:
+                resp += ".\n sorry, andy jassy hates us. no gpu for us"
             # asyncio.create_task(really_start_worker())
         return resp
 
@@ -158,6 +166,25 @@ class Imogen(Bot):
             # if not, turn it on
             logging.info(await get_output(start.format(self.worker_instance_id)))
         return f"you are #{timed} in line"
+
+    async def do_c(self, msg: Message) -> str:
+        prompt = (
+            "The following is a conversation with an AI assistant. "
+            "The assistant likes to make art, is helpful, creative, clever, funny, and very friendly.\n\n"
+            "Human: Hello, who are you?\nAI: My name is Imogen, I'm an AI that makes dream-like images. How can I help you today?\n"
+            f"Human: {msg.text}\nAI: "
+        )
+        response = openai.Completion.create( # type: ignore
+            engine="davinci",
+            prompt=prompt,
+            temperature=0.9,
+            max_tokens=140,
+            top_p=1,
+            frequency_penalty=0.0,
+            presence_penalty=0.6,
+            stop=["\n", " Human:", " AI:"],
+        )
+        return response["choices"][0]["text"].strip()
 
     async def do_stop(self, _: Message) -> str:
         return await get_output(stop.format(self.worker_instance_id))
