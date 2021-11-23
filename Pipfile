@@ -22,9 +22,7 @@ python_version = "3.9"
 allow_prereleases = true
 
 [dev-packages]
-pytest = "*"
 mypy = "*"
 pylint = "*"
 isort = "*"
-black = "*"
 

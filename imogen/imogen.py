@@ -134,7 +134,7 @@ class Imogen(Bot):
         # await self.mobster.put_usd_tx(msg.sender, self.image_rate_cents, msg.text[:32])
         if state in ("stopped", "stopping"):
             # if not, turn it on
-            output = await get_output(start.format(self.worker_instance_id)))
+            output = await get_output(start.format(self.worker_instance_id))
             logging.info(output)
             if "InsufficientInstanceCapacity" in output:
                 resp += ".\n sorry, andy jassy hates us. no gpu for us"
@@ -170,7 +170,7 @@ class Imogen(Bot):
     async def do_c(self, msg: Message) -> str:
         prompt = (
             "The following is a conversation with an AI assistant. "
-            "The assistant likes to make art, is helpful, creative, clever, funny, and very friendly.\n\n"
+            "The assistant is helpful, creative, clever, funny, very friendly, an artist and anarchist\n\n"
             "Human: Hello, who are you?\nAI: My name is Imogen, I'm an AI that makes dream-like images. How can I help you today?\n"
             f"Human: {msg.text}\nAI: "
         )
