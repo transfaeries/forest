@@ -20,7 +20,7 @@ import urllib
 import uuid
 from asyncio import Queue, StreamReader, StreamWriter
 from asyncio.subprocess import PIPE
-from typing import Any, AsyncIterator, Optional, Union
+from typing import Any, AsyncIterator, Optional, Type, Union
 
 import aiohttp
 import phonenumbers as pn
@@ -757,7 +757,7 @@ app.add_routes(
 
 # order of operations:
 # 1. start memfs
-# 2. instanciate Bot, which calls setup_tmpdir
+# 2. instanciate Bot, which may call setup_tmpdir
 # 3. download
 # 4. start process
 
@@ -765,12 +765,13 @@ if utils.MEMFS:
     app.on_startup.append(autosave.start_memfs)
     app.on_startup.append(autosave.start_memfs_monitor)
 
-app.add_routes([])
 
-if __name__ == "__main__":
-
-    @app.on_startup.append
+def run_bot(bot: Type[Bot], local_app: web.Application = app) -> None:
+    @local_app.on_startup.append
     async def start_wrapper(our_app: web.Application) -> None:
-        our_app["bot"] = Bot()
+        our_app["bot"] = bot()
 
     web.run_app(app, port=8080, host="0.0.0.0")
+
+if __name__ == "__main__":
+    run_bot(Bot)
