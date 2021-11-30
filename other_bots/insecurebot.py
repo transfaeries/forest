@@ -1,11 +1,15 @@
+#!/usr/bin/python3.9
+# Copyright (c) 2021 MobileCoin Inc.
+# Copyright (c) 2021 The Forest Team
+
 import asyncio
 from aiohttp import web
 from forest.core import Bot, Message, app
 
 
 class InsecureBot(Bot):
-    async def do_sh(self, msg: Message) -> str:
-        async def concurrently():
+    async def do_sh(self, msg: Message) -> None:
+        async def concurrently() -> None:
             await self.send_message(
                 msg.source,
                 "\n".join(
