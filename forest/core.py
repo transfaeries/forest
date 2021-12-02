@@ -204,7 +204,10 @@ class Signal:
                 for msg in blob["result"]:
                     if not blob.get("content", {}).get("receipt_message", {}):
                         await self.auxincli_output_queue.put(MessageParser(msg))
-            message_blob = blob
+            elif isinstance(blob["result"], dict):
+                message_blob = blob
+            else:
+                logging.warning(blob["result"])
         if message_blob:
             return await self.auxincli_output_queue.put(MessageParser(message_blob))
 

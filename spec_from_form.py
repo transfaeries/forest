@@ -1,10 +1,13 @@
+#!/usr/bin/python3.9
 import lxml
 from lxml import etree, html
 import urllib.request
 import json
 
-url = "https://docs.google.com/forms/d/e/1FAIpQLSdY53W49HhpwZ3g6H_w4GxrnPbVZt-xPvoen-KkhTHp4l72bg/"
-url = "https://docs.google.com/forms/d/e/1FAIpQLSfzlSloyv4w8SmLNR4XSSnSlKJ7WFa0wPMvEJO-5cK-Zb6ZdQ/"
+url = "https://docs.google.com/forms/d/e/1FAIpQLSdY53W49HhpwZ3g6H_w4GxrnPbVZt-xPvoen-KkhTHp4l72bg/" # drop shop
+url = "https://docs.google.com/forms/d/e/1FAIpQLSfzlSloyv4w8SmLNR4XSSnSlKJ7WFa0wPMvEJO-5cK-Zb6ZdQ/" # untitled form form 
+#url = "https://docs.google.com/forms/d/e/1FAIpQLScuj5QaSsgCWykFMPsWUnVnTfCz5Ure7FhL0zskEslMjB_Uig/" # test form pls ignore(mc)
+
 a = urllib.request.Request(url + "viewform")
 a.add_header("User-Agent", "ABCD")
 

@@ -3,22 +3,25 @@ from typing import NewType, Optional, NamedTuple, Literal
 import logging
 from forest.core import Message, PayBot, Response, run_bot
 
-shoe_spec = """! Today we're selling a limited number of hand-painted shoes!
--> https://lh5.googleusercontent.com/ZyXMq3SnkOjvTSbHsMoLCugs_wAU7BKQlLhIWokrAV5XfCVHq3SP4TN8pnnEk1LTqMbkS8-cB6i8zHkEXve9Sa_5uBqWaRlqf2qryjueXPPHJLpHv_QHqtOUHhEBjQsSlA=w640
-entry.1941031617🔜? Which color would you like to order?
- - Please specify the color, referencing the above image. 
-  - (Rehu, Arazan, Ketu, Kaspian, Lapis)
-entry.1810633354🔜? What size shoes do you wear? (specify M/F as needed)
-entry.599451360🔜? What name should we put on your package?
-entry.1742808960🔜? What is your mailing address?
-entry.1022864849🔜$ $200 MOB
-entry.1870700300🔜? Any questions or comments?
-https://docs.google.com/forms/d/e/1FAIpQLSdY53W49HhpwZ3g6H_w4GxrnPbVZt-xPvoen-KkhTHp4l72bg/formResponse 🔜 ? confirm"""
 
+# ! Today we're selling a limited number of hand-painted shoes!
+# -> https://lh5.googleusercontent.com/ZyXMq3SnkOjvTSbHsMoLCugs_wAU7BKQlLhIWokrAV5XfCVHq3SP4TN8pnnEk1LTqMbkS8-cB6i8zHkEXve9Sa_5uBqWaRlqf2qryjueXPPHJLpHv_QHqtOUHhEBjQsSlA=w640
+# entry.1941031617🔜? Which color would you like to order?
+#  - Please specify the color, referencing the above image. 
+#   - (Rehu, Arazan, Ketu, Kaspian, Lapis)
+
+shoe_spec = """entry.2055232012🔜? What size shoes do you wear? (specify M/F as needed)
+entry.1000020🔜? What name should we put on your package?
+entry.164576404🔜? What is your mailing address?
+entry.2032061264🔜$ $0.01 MOB
+entry.1000023🔜? Any questions or comments?
+https://docs.google.com/forms/d/e/1FAIpQLSdY53W49HhpwZ3g6H_w4GxrnPbVZt-xPvoen-KkhTHp4l72bg/formResponse🔜? confirm
+"""
 
 test_spec = """
 entry.1097373330🔜? why does what who
 entry.2131770336🔜? have you stopped drinking litres of vodka every morning yet?
+entry.87194809🔜$ $0.01 MOB
 https://docs.google.com/forms/d/e/1FAIpQLSfzlSloyv4w8SmLNR4XSSnSlKJ7WFa0wPMvEJO-5cK-Zb6ZdQ/formResponse🔜? confirm
 """
 
@@ -30,17 +33,15 @@ User = NewType("User", str)
 
 
 def load_spec(spec: str) -> list[Prompt]:
-    return [
-        Prompt(qid, *text.split(" ", 1))  # type: ignore
-        for qid, text in [
+    prompts = []
+    for line in spec.split("\n"):
+        if line:
             # gauranteed safe seperator, no escaping necessary
-            line.split("🔜", 1)
-            for line in spec.split("\n")
-            if "🔜" in line
-        ]
-        if text.startswith("?")
-    ]
-
+            print(line)
+            qid, stuff= line.split("🔜", 1)
+            action, text = stuff.split(" ", 1)
+            prompts.append(Prompt(qid, action, text))
+    return prompts
 
 class FormBot(PayBot):
     spec: list[Prompt] = load_spec(test_spec)
@@ -92,9 +93,9 @@ class FormBot(PayBot):
         if user not in self.next_states_for_user:
             self.next_states_for_user[user] = list(self.spec)
         # validate input somehow
-        prompt_used = await self.use_prompt_response(user, message.text)
+        prompt_used = await self.use_prompt_response(user, message.text or message.payment["receipt"])
         if prompt_used:
-            ack = f"recorded: {message.text}"
+            ack = f"recorded: {'payment' if message.payment else message.text}"
         else:
             ack = f"{message.text} yourself"
         logging.info(self.next_states_for_user[user])
@@ -133,7 +134,7 @@ class FormBot(PayBot):
         await self.mobster.ledger_manager.put_usd_tx(
             msg.source, -int(price * 100), "form payment"
         )
-        self.user_data[User(msg.source)]["pay"] = msg.payment["receipt"]
+        self.user_data[User(msg.source)][pay_prompt.qid] = msg.payment["receipt"]
         await self.respond(msg, resp)
         return await self.next_question(msg)
 
