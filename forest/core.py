@@ -586,6 +586,10 @@ class PayBot(Bot):
             return None
         return await super().handle_message(message)
 
+    async def get_user_balance(self, account: str) -> float:
+        res = await self.mobster.ledger_manager.get_usd_balance(account)
+        return float(round(res[0].get("balance"), 2))
+
     async def handle_payment(self, message: Message) -> None:
         """Decode the receipt, then update balances.
         Blocks on transaction completion, run concurrently"""

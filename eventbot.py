@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import NewType, Optional, NamedTuple
+from typing import NewType, Optional, NamedTuple, Literal
 import logging
 from forest.core import Message, PayBot, Response, run_bot
 
@@ -22,13 +22,16 @@ entry.2131770336🔜? have you stopped drinking litres of vodka every morning ye
 https://docs.google.com/forms/d/e/1FAIpQLSfzlSloyv4w8SmLNR4XSSnSlKJ7WFa0wPMvEJO-5cK-Zb6ZdQ/formResponse🔜? confirm
 """
 
-Prompt = NamedTuple("Prompt", [("qid", str), ("text", str)])
+Action = Literal["!", "?", "$"]
+Prompt = NamedTuple("Prompt", [("qid", str), ("action", Action), ("text", str)])
 User = NewType("User", str)
+
+# moneyprompt - metadata, message, value
 
 
 def load_spec(spec: str) -> list[Prompt]:
     return [
-        Prompt(qid, text.removeprefix("? ").strip())
+        Prompt(qid, *text.split(" ", 1))  # type: ignore
         for qid, text in [
             # gauranteed safe seperator, no escaping necessary
             line.split("🔜", 1)
@@ -56,11 +59,14 @@ class FormBot(PayBot):
         return "loaded spec, only processing ?"
 
     # maybe this could take FormTakingUser?
-    def issue_prompt(self, user: User) -> Optional[Prompt]:
+    def issue_prompt_text(self, user: User) -> Optional[str]:
         if len(self.next_states_for_user[user]):
             next_prompt = self.next_states_for_user[user].pop(0)
             self.issued_prompt_for_user[user] = next_prompt
-            return next_prompt
+            if next_prompt.action == "$":
+                return f"Please pay {next_prompt.text}"
+            if next_prompt.action == "?":
+                return next_prompt.text
         return None
 
     # maybe this could take PromptedUser?
@@ -71,17 +77,17 @@ class FormBot(PayBot):
             logging.info("using prompt %s", prompt)
             if prompt.text == "confirm" and resp.lower() in "yes":
                 logging.info("submitting: %s", self.user_data[user])
-                logging.info(await self.client_session.post(
-                    prompt.qid, data=self.user_data[user]
-                ))
+                logging.info(
+                    await self.client_session.post(
+                        prompt.qid, data=self.user_data[user]
+                    )
+                )
                 return True
             self.user_data[user][prompt.qid] = resp
             return True
         return False
 
-    async def default(self, message: Message) -> Response:
-        if not message.text or message.group:
-            return None
+    async def next_question(self, message: Message) -> Response:
         user = User(message.source)
         if user not in self.next_states_for_user:
             self.next_states_for_user[user] = list(self.spec)
@@ -92,17 +98,44 @@ class FormBot(PayBot):
         else:
             ack = f"{message.text} yourself"
         logging.info(self.next_states_for_user[user])
-        maybe_prompt = self.issue_prompt(user)
+        maybe_prompt = self.issue_prompt_text(user)
         if maybe_prompt:
             logging.info(maybe_prompt)
-            if maybe_prompt.text == "confirm":
+            if maybe_prompt == "confirm":
                 return [
                     "thanks for filling out this form. you said:",
                     self.user_data[user],
                     "Submit?",
                 ]
-            return f"{ack}. {maybe_prompt.text}"
+            return f"{ack}. {maybe_prompt}"
         return "thanks for filling out this form"
+
+    async def default(self, message: Message) -> Response:
+        if not message.text or message.group:
+            return None
+        return await self.next_question(message)
+
+    # issue: handling
+    async def payment_response(self, msg: Message, amount_pmob: int) -> Response:
+        del amount_pmob
+        pay_prompt = self.issued_prompt_for_user.get(User(msg.source))
+        if not pay_prompt or pay_prompt.action != "$":
+            return "not sure what that payment was for"
+        price = float(pay_prompt.text.removesuffix(" MOB").strip().lstrip("$").strip())
+        diff = await self.get_user_balance(msg.source) - price
+        if diff < price * -0.005:
+            diff_mob = await self.mobster.usd2mob(abs(diff))
+            return f"Another {abs(diff)} USD ({diff_mob} MOB) buy a phone number"
+        if diff < price * 0.005:  # tolerate half a percent difference
+            resp = f"Thank you for paying! You've overpayed by {diff} USD. Contact an administrator for a refund"
+        else:
+            resp = "Payment acknowledged"
+        await self.mobster.ledger_manager.put_usd_tx(
+            msg.source, -int(price * 100), "form payment"
+        )
+        self.user_data[User(msg.source)]["pay"] = msg.payment["receipt"]
+        await self.respond(msg, resp)
+        return await self.next_question(msg)
 
 
 if __name__ == "__main__":
