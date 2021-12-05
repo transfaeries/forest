@@ -43,6 +43,7 @@ roundtrip_summary = Summary("roundtrip_s", "Roundtrip message response time")
 
 MessageParser = AuxinMessage if utils.AUXIN else StdioMessage
 logging.info("Using message parser: %s", MessageParser)
+fee_pmob = int(1e12 * 0.0004)
 
 
 def rpc(
@@ -292,7 +293,6 @@ class Signal:
         await self.auxincli_input_queue.put(rpc("setProfile", params, future_key))
         return future_key
         # {"jsonrpc": "2.0", "method": "setProfile", "params":{"profile_fields":{"name": {"givenName":"TestBotFriend"}}}, "id":"SetName2"}
-        logging.info(profile)
 
     # this should maybe yield a future (eep) and/or use auxin_req
     async def send_message(  # pylint: disable=too-many-arguments
@@ -684,7 +684,35 @@ class PayBot(Bot):
         content_skeletor["dataMessage"]["payment"] = payment
         return json.dumps(content_skeletor)
 
-    async def send_payment(self, recipient: str, amount_pmob: int) -> Optional[Message]:
+    async def build_cash_code(
+        self, recipient: str, amount_pmob: int
+    ) -> Optional[Message]:
+        """Builds a cash code and sends to a recipient, given a recipient as phone number and amount in pMOB."""
+        raw_prop = await self.mob_request(
+            "build_gift_code",
+            account_id=await self.mobster.get_account(),
+            value_pmob=str(int(amount_pmob)),
+            fee=str(fee_pmob),
+            memo="Cash code built with MOBot!",
+        )
+        prop = raw_prop["result"]["tx_proposal"]
+        b58_code = raw_prop["result"]["gift_code_b58"]
+        submitted = await self.mob_request(
+            "submit_gift_code",
+            tx_proposal=prop,
+            gift_code_b58=b58_code,
+            from_account_id=await self.mobster.get_account(),
+        )
+        b58 = submitted.get("result", {}).get("gift_code", {}).get("gift_code_b58")
+        await self.send_message(
+            recipient,
+            f"Built Cash Code {b58} redeemable for {str(mc_util.pmob2mob(amount_pmob-fee_pmob)).rstrip('0')} MOB",
+        )
+        return None
+
+    async def send_payment(
+        self, recipient: str, amount_pmob: int, receipt_message: str = "receipt sent!"
+    ) -> Optional[Message]:
         address = await self.get_address(recipient)
         if not address:
             await self.send_message(
@@ -712,7 +740,8 @@ class PayBot(Bot):
         # pass our beautifully composed spicy JSON content to auxin.
         # message body is ignored in this case.
         payment_notif = await self.send_message(recipient, "", content=content)
-        await self.send_message(recipient, "receipt sent!")
+        if receipt_message:
+            await self.send_message(recipient, receipt_message)
         return await self.wait_resp(future_key=payment_notif)
 
 
