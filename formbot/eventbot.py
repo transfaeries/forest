@@ -37,7 +37,6 @@ def load_spec(spec: str) -> list[Prompt]:
     for line in spec.split("\n"):
         if line:
             # gauranteed safe seperator, no escaping necessary
-            print(line)
             qid, stuff= line.split("🔜", 1)
             action, text = stuff.split(" ", 1)
             prompts.append(Prompt(qid, action, text))
