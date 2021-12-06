@@ -57,6 +57,8 @@ spec:
         value: "1"
       - name: NO_MEMFS
         value: "1"
+      - name: URL_OVERRIDE
+        value: "https://forest-bot.forest.mobilecoin.com/inbound" 
 
     volumeMounts:
       - name: signal-cli-data
