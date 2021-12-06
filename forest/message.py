@@ -5,6 +5,7 @@ breaks our typing if we expect Message.attachments to be list[str].
 Using `or` like this is a bit of a hack, but it's what we've got.
 """
 from typing import Optional
+
 from forest.utils import logging
 
 
@@ -70,6 +71,8 @@ class AuxinMessage(Message):
             self.id = outer_blob["id"]
             self.error = outer_blob.get("error", {})
             blob = outer_blob.get("result", {})
+            if not isinstance(blob, dict):
+                blob = {}
         else:
             self.id = _id
             blob = outer_blob

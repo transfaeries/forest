@@ -20,10 +20,12 @@ import urllib
 import uuid
 from asyncio import Queue, StreamReader, StreamWriter
 from asyncio.subprocess import PIPE
-from typing import Any, AsyncIterator, Optional, Union
+from copy import copy
+from functools import wraps
+from textwrap import dedent
+from typing import Any, AsyncIterator, Callable, Optional, Union
 
 import aiohttp
-import phonenumbers as pn
 import termcolor
 from aiohttp import web
 from phonenumbers import NumberParseException
@@ -43,6 +45,7 @@ roundtrip_summary = Summary("roundtrip_s", "Roundtrip message response time")
 
 MessageParser = AuxinMessage if utils.AUXIN else StdioMessage
 logging.info("Using message parser: %s", MessageParser)
+fee_pmob = int(1e12 * 0.0004)
 
 
 def rpc(
@@ -107,6 +110,8 @@ class Signal:
                 utils.get_secret("SIGNAL_CLI_PATH")
                 or f"{utils.ROOT_DIR}/{'auxin' if utils.AUXIN else 'signal'}-cli"
             )
+            if not utils.AUXIN:
+                path += " --trust-new-identities always"
             command = f"{path} --config {utils.ROOT_DIR} --user {self.bot_number} jsonRpc".split()
             logging.info(command)
             proc_launch_time = time.time()
@@ -432,6 +437,23 @@ class Signal:
 Datapoint = tuple[int, str, float]  # timestamp in ms, command/info, latency in seconds
 
 
+def requires_admin(command: Callable) -> Callable:
+    @wraps(command)
+    async def wrapped_command(self: "Bot", msg: Message) -> Response:
+        if msg.source == utils.get_secret("ADMIN"):
+            return await command(self, msg)
+        return "you must be an admin to use this command"
+
+    wrapped_command.admin = True  # type: ignore
+    return wrapped_command
+
+
+def hide(command: Callable) -> Callable:
+    hidden_command = copy(command)
+    hidden_command.hide = True  # type: ignore
+    return hidden_command
+
+
 class Bot(Signal):
     """Handles messages and command dispatch, as well as basic commands.
     Must be instantiated within a running async loop.
@@ -449,7 +471,6 @@ class Bot(Signal):
             self.start_process()
         )  # maybe cancel on sigint?
         self.queue_task = asyncio.create_task(self.handle_messages())
-        self.response_metrics: list[Datapoint] = []
         self.auxin_roundtrip_latency: list[Datapoint] = []
         if utils.get_secret("MONITOR_WALLET"):
             # currently spams and re-credits the same invoice each reboot
@@ -483,8 +504,6 @@ class Bot(Signal):
             )
         python_delta = round(time.time() - start_time, 3)
         note = message.command or ""
-        if python_delta:
-            self.response_metrics.append((int(start_time), note, python_delta))
         if future_key:
             logging.debug("awaiting future %s", future_key)
             result = await self.wait_resp(future_key=future_key)
@@ -520,37 +539,27 @@ class Bot(Signal):
             return resp
         return None
 
-    # gross
-    async def do_average_metric(self, _: Message) -> Response:
-        avg = sum(metric[-1] for metric in self.auxin_roundtrip_latency) / len(
-            self.auxin_roundtrip_latency
-        )
-        return str(round(avg, 4))
-
-    async def do_dump_metric_csv(self, _: Message) -> Response:
-        return "start_time, command, delta\n" + "\n".join(
-            f"{fmt_ms(t)}, {cmd}, {delta}" for t, cmd, delta in self.response_metrics
-        )
-
-    async def do_dump_roundtrip(self, _: Message) -> Response:
-        return "start_time, command, delta\n" + "\n".join(
-            f"{fmt_ms(t)}, {cmd}, {delta}"
-            for t, cmd, delta in self.auxin_roundtrip_latency
-        )
-
-    async def do_help(self, message: Message) -> str:
-        """List available commands. /help <command> gives you that command's documentation, if available"""
-        if message.arg1:
-            if hasattr(self, "do_" + message.arg1):
-                cmd = getattr(self, "do_" + message.arg1)
-                if cmd.__doc__:
-                    return cmd.__doc__
-                return f"Sorry, {message.arg1} isn't documented"
-        # TODO: filter aliases and indicate which commands are undocumented
-
-        return "commands: " + ", ".join(
-            k.removeprefix("do_") for k in dir(self) if k.startswith("do_")
-        )
+    async def do_help(self, msg: Message) -> Response:
+        """
+        /help [command]. see the documentation for command, or all commands
+        """
+        if msg.arg1:
+            try:
+                doc = getattr(self, f"do_{msg.arg1}").__doc__
+                if doc:
+                    return dedent(doc).strip()
+                return f"{msg.arg1} isn't documented, sorry :("
+            except AttributeError:
+                return f"no such command '{msg.arg1}'"
+        else:
+            resp = "documented commands: " + ", ".join(
+                name.removeprefix("do_")
+                for name in dir(self)
+                if name.startswith("do_")
+                and not hasattr(getattr(self, name), "admin")
+                and not hasattr(getattr(self, name), "hide")
+            )
+        return resp
 
     async def do_printerfact(self, _: Message) -> str:
         "Learn a fact about printers"
@@ -569,26 +578,6 @@ class Bot(Signal):
             self.pongs[message.text] = message.text
             return f"OK, stashing {message.text}"
         return "OK"
-
-    async def check_target_number(self, msg: Message) -> Optional[str]:
-        """Check if arg1 is a valid number. If it isn't, let the user know and return None"""
-        try:
-            logging.debug("checking %s", msg.arg1)
-            assert msg.arg1
-            parsed = pn.parse(msg.arg1, "US")  # fixme: use PhoneNumberMatcher
-            assert pn.is_valid_number(parsed)
-            number = pn.format_number(parsed, pn.PhoneNumberFormat.E164)
-            return number
-        except (pn.phonenumberutil.NumberParseException, AssertionError):
-            await self.send_message(
-                msg.source,
-                f"{msg.arg1} doesn't look a valid number or user. "
-                "did you include the country code?",
-            )
-            return None
-
-    async def do_exception(self, message: Message) -> None:
-        raise Exception("You asked for it!")
 
 
 class PayBot(Bot):
@@ -644,6 +633,7 @@ class PayBot(Bot):
         address = await self.get_address(msg.source)
         return address or "sorry, couldn't get your MobileCoin address"
 
+    @requires_admin
     async def do_rename(self, msg: Message) -> Response:
         if msg.tokens and len(msg.tokens) > 1:
             await self.set_profile_auxin(*msg.tokens)
@@ -676,14 +666,42 @@ class PayBot(Bot):
         content_skeletor["dataMessage"]["payment"] = payment
         return json.dumps(content_skeletor)
 
-    async def send_payment(self, recipient: str, amount_pmob: int) -> Optional[Message]:
+    async def build_cash_code(
+        self, recipient: str, amount_pmob: int
+    ) -> Optional[Message]:
+        """Builds a cash code and sends to a recipient, given a recipient as phone number and amount in pMOB."""
+        raw_prop = await self.mob_request(
+            "build_gift_code",
+            account_id=await self.mobster.get_account(),
+            value_pmob=str(int(amount_pmob)),
+            fee=str(fee_pmob),
+            memo="Cash code built with MOBot!",
+        )
+        prop = raw_prop["result"]["tx_proposal"]
+        b58_code = raw_prop["result"]["gift_code_b58"]
+        submitted = await self.mob_request(
+            "submit_gift_code",
+            tx_proposal=prop,
+            gift_code_b58=b58_code,
+            from_account_id=await self.mobster.get_account(),
+        )
+        b58 = submitted.get("result", {}).get("gift_code", {}).get("gift_code_b58")
+        await self.send_message(
+            recipient,
+            f"Built Cash Code {b58} redeemable for {str(mc_util.pmob2mob(amount_pmob-fee_pmob)).rstrip('0')} MOB",
+        )
+        return None
+
+    async def send_payment(
+        self, recipient: str, amount_pmob: int, receipt_message: str = "receipt sent!"
+    ) -> Optional[Message]:
         address = await self.get_address(recipient)
         if not address:
             await self.send_message(
                 recipient, "sorry, couldn't get your MobileCoin address"
             )
             return None
-        # TODO: add a lock around two-part build/submit OR
+        # TODO: add a lock around two-part build/submit Or
         # TODO: add explicit utxo handling
         # TODO: add task which keeps full-service filled
         raw_prop = await self.mob_request(
@@ -704,7 +722,8 @@ class PayBot(Bot):
         # pass our beautifully composed spicy JSON content to auxin.
         # message body is ignored in this case.
         payment_notif = await self.send_message(recipient, "", content=content)
-        await self.send_message(recipient, "receipt sent!")
+        if receipt_message:
+            await self.send_message(recipient, receipt_message)
         return await self.wait_resp(future_key=payment_notif)
 
 
