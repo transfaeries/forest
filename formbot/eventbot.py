@@ -4,6 +4,14 @@ import logging
 from forest.core import Message, PayBot, Response, run_bot
 
 
+# notes: collect phone numbers, preferred name,
+# number of tickets
+#
+#
+# blastm
+#
+
+
 # ! Today we're selling a limited number of hand-painted shoes!
 # -> https://lh5.googleusercontent.com/ZyXMq3SnkOjvTSbHsMoLCugs_wAU7BKQlLhIWokrAV5XfCVHq3SP4TN8pnnEk1LTqMbkS8-cB6i8zHkEXve9Sa_5uBqWaRlqf2qryjueXPPHJLpHv_QHqtOUHhEBjQsSlA=w640
 # entry.1941031617🔜? Which color would you like to order?
