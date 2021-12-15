@@ -2,12 +2,13 @@
 # Copyright (c) 2021 MobileCoin Inc.
 # Copyright (c) 2021 The Forest Team
 
+import functools
 import logging
 import os
-import functools
 from asyncio.subprocess import PIPE, create_subprocess_exec
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, Optional, cast
+
 import phonenumbers as pn
 from phonenumbers import NumberParseException
 
@@ -37,7 +38,7 @@ logger = logging.getLogger()
 logger.setLevel("DEBUG")
 fmt = logging.Formatter("{levelname} {module}:{lineno}: {message}", style="{")
 console_handler = logging.StreamHandler()
-console_handler.setLevel(os.getenv("LOGLEVEL") or "INFO")
+console_handler.setLevel((os.getenv("LOGLEVEL") or os.getenv("LOG_LEVEL")).upper() or "INFO")
 console_handler.setFormatter(fmt)
 console_handler.addFilter(FuckAiohttp)
 logger.addHandler(console_handler)
