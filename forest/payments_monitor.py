@@ -180,6 +180,9 @@ class Mobster:
             except asyncpg.UniqueViolationError:
                 pass
 
+    async def create_account(self) -> dict:
+        return await self.req_("create_account")
+
     async def import_account(self) -> dict:
         params = {
             "mnemonic": utils.get_secret("MNEMONIC"),

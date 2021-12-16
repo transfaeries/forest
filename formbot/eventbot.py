@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from typing import NamedTuple, NewType, Optional #, Literal
+from typing import NamedTuple, NewType, Optional  # , Literal
 
 import mc_util
 from forest.core import Message, PayBot, Response, run_bot
@@ -39,7 +39,7 @@ entry.1525502581🔜$ $0.01 MOB
 https://docs.google.com/forms/d/e/1FAIpQLSeT2crTF86MwpRNH0XKpzV31MNg9pKcL8_LodpM4hb0FA6ujw/formResponse🔜? confirm
 """
 
-Action = NewType("Action", str) # Literal["!", "?", "$"]
+Action = NewType("Action", str)  # Literal["!", "?", "$"]
 Prompt = NamedTuple("Prompt", [("qid", str), ("action", Action), ("text", str)])
 User = NewType("User", str)
 
@@ -58,7 +58,7 @@ def load_spec(spec: str) -> list[Prompt]:
 
 
 class FormBot(PayBot):
-    spec: list[Prompt] = load_spec(test_spec)
+    spec: list[Prompt] = load_spec(event_spec)
     issued_prompt_for_user: dict[User, Prompt] = {}
     next_states_for_user: dict[User, list[Prompt]] = defaultdict(list)
     user_data: dict[User, dict[str, str]] = defaultdict(dict)
@@ -68,12 +68,14 @@ class FormBot(PayBot):
 
     async def start_process(self) -> None:
         try:
-            await self.mobster.get_address()
+            address = await self.mobster.get_address()
+            logging.info("got address?")
         except IndexError:
             await self.mobster.create_account()
             address = await self.mobster.get_address()
-            b64 = mc_util.b58_wrapper_to_b64_public_address(address)
-            await self.set_profile_auxin("Eventbot", payment_address=b64)
+        b64 = mc_util.b58_wrapper_to_b64_public_address(address)
+        logging.info("setting profile")
+        await self.set_profile_auxin("Eventbot", payment_address=b64)
         await super().start_process()
 
     async def do_get_spec(self, _: Message) -> str:
@@ -83,13 +85,18 @@ class FormBot(PayBot):
         self.spec = load_spec(msg.text)
         return "loaded spec, only processing ?"
 
-    # maybe this could take FormTakingUser?
-    def issue_prompt_text(self, user: User) -> Optional[str]:
+    async def price(self, prompt: Prompt) -> float:
+        return await self.mobster.usd2mob(
+            float(prompt.text.removeprefix("$").removesuffix("MOB").strip())
+        )  # maybe this could take FormTakingUser?
+
+    async def issue_prompt_text(self, user: User) -> Optional[str]:
         if len(self.next_states_for_user[user]):
             next_prompt = self.next_states_for_user[user].pop(0)
             self.issued_prompt_for_user[user] = next_prompt
             if next_prompt.action == "$":
-                return f"Please pay {next_prompt.text}"
+                mob = await self.price(next_prompt)
+                return f"Please pay {mob} MOB"
             if next_prompt.action == "?":
                 return next_prompt.text
         return None
@@ -116,8 +123,14 @@ class FormBot(PayBot):
         user = User(message.source)
         if user not in self.next_states_for_user:
             self.next_states_for_user[user] = list(self.spec)
-        if self.issued_prompt_for_user[user].action == "$":
-            return "Please pay {self.issued_prompt_for_user[user].text}"
+        maybe_current_prompt = self.issued_prompt_for_user.get(user)
+        if (
+            maybe_current_prompt
+            and maybe_current_prompt.action == "$"
+            and not message.payment
+        ):
+            mob = await self.price(maybe_current_prompt)
+            return f"Please pay {mob} MOB"
         # validate input somehow
         prompt_used = await self.use_prompt_response(
             user, message.text or message.payment["receipt"]
@@ -127,7 +140,7 @@ class FormBot(PayBot):
         else:
             ack = f"{message.text} yourself"
         logging.info(self.next_states_for_user[user])
-        maybe_prompt = self.issue_prompt_text(user)
+        maybe_prompt = await self.issue_prompt_text(user)
         if maybe_prompt:
             logging.info(maybe_prompt)
             if maybe_prompt == "confirm":
@@ -150,7 +163,7 @@ class FormBot(PayBot):
         pay_prompt = self.issued_prompt_for_user.get(User(msg.source))
         if not pay_prompt or pay_prompt.action != "$":
             return "not sure what that payment was for"
-        price = float(pay_prompt.text.removesuffix(" MOB").strip().lstrip("$").strip())
+        price = await self.price(pay_prompt)
         diff = await self.get_user_balance(msg.source) - price
         if diff < price * -0.005:
             diff_mob = await self.mobster.usd2mob(abs(diff))

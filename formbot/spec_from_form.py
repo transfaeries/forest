@@ -62,7 +62,7 @@ for question in questions:
         if "Payment" not in prompt:
             print("?", prompt)
         else:
-            print("$", prompt.split()[0], "MOB")
+            print("$", prompt.split()[0])
         if description:
             print(" -", description)
         if question_["answers"]:
