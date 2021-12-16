@@ -840,7 +840,7 @@ def run_bot(bot: Type[Bot], local_app: web.Application = app) -> None:
     async def start_wrapper(our_app: web.Application) -> None:
         our_app["bot"] = bot()
 
-    web.run_app(app, port=8080, host="0.0.0.0")
+    web.run_app(app, port=8080, host="0.0.0.0", access_log=None)
 
 
 if __name__ == "__main__":

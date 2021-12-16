@@ -7,7 +7,7 @@ import json
 url = "https://docs.google.com/forms/d/e/1FAIpQLSdY53W49HhpwZ3g6H_w4GxrnPbVZt-xPvoen-KkhTHp4l72bg/" # drop shop
 url = "https://docs.google.com/forms/d/e/1FAIpQLSfzlSloyv4w8SmLNR4XSSnSlKJ7WFa0wPMvEJO-5cK-Zb6ZdQ/" # untitled form form 
 #url = "https://docs.google.com/forms/d/e/1FAIpQLScuj5QaSsgCWykFMPsWUnVnTfCz5Ure7FhL0zskEslMjB_Uig/" # test form pls ignore(mc)
-
+url = "https://docs.google.com/forms/d/e/1FAIpQLSeT2crTF86MwpRNH0XKpzV31MNg9pKcL8_LodpM4hb0FA6ujw/" # party invite
 a = urllib.request.Request(url + "viewform")
 a.add_header("User-Agent", "ABCD")
 

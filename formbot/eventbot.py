@@ -1,8 +1,9 @@
-from collections import defaultdict
-from typing import NewType, Optional, NamedTuple, Literal
 import logging
-from forest.core import Message, PayBot, Response, run_bot
+from collections import defaultdict
+from typing import NamedTuple, NewType, Optional #, Literal
 
+import mc_util
+from forest.core import Message, PayBot, Response, run_bot
 
 # notes: collect phone numbers, preferred name,
 # number of tickets
@@ -15,7 +16,7 @@ from forest.core import Message, PayBot, Response, run_bot
 # ! Today we're selling a limited number of hand-painted shoes!
 # -> https://lh5.googleusercontent.com/ZyXMq3SnkOjvTSbHsMoLCugs_wAU7BKQlLhIWokrAV5XfCVHq3SP4TN8pnnEk1LTqMbkS8-cB6i8zHkEXve9Sa_5uBqWaRlqf2qryjueXPPHJLpHv_QHqtOUHhEBjQsSlA=w640
 # entry.1941031617🔜? Which color would you like to order?
-#  - Please specify the color, referencing the above image. 
+#  - Please specify the color, referencing the above image.
 #   - (Rehu, Arazan, Ketu, Kaspian, Lapis)
 
 shoe_spec = """entry.2055232012🔜? What size shoes do you wear? (specify M/F as needed)
@@ -33,7 +34,12 @@ entry.87194809🔜$ $0.01 MOB
 https://docs.google.com/forms/d/e/1FAIpQLSfzlSloyv4w8SmLNR4XSSnSlKJ7WFa0wPMvEJO-5cK-Zb6ZdQ/formResponse🔜? confirm
 """
 
-Action = Literal["!", "?", "$"]
+event_spec = """entry.559352220🔜? What is your name?
+entry.1525502581🔜$ $0.01 MOB
+https://docs.google.com/forms/d/e/1FAIpQLSeT2crTF86MwpRNH0XKpzV31MNg9pKcL8_LodpM4hb0FA6ujw/formResponse🔜? confirm
+"""
+
+Action = NewType("Action", str) # Literal["!", "?", "$"]
 Prompt = NamedTuple("Prompt", [("qid", str), ("action", Action), ("text", str)])
 User = NewType("User", str)
 
@@ -45,10 +51,11 @@ def load_spec(spec: str) -> list[Prompt]:
     for line in spec.split("\n"):
         if line:
             # gauranteed safe seperator, no escaping necessary
-            qid, stuff= line.split("🔜", 1)
+            qid, stuff = line.split("🔜", 1)
             action, text = stuff.split(" ", 1)
-            prompts.append(Prompt(qid, action, text))
+            prompts.append(Prompt(qid, Action(action), text))
     return prompts
+
 
 class FormBot(PayBot):
     spec: list[Prompt] = load_spec(test_spec)
@@ -58,6 +65,16 @@ class FormBot(PayBot):
 
     """create table if not exists form_messages
     (ts timestamp, source text, message text, question text"""
+
+    async def start_process(self) -> None:
+        try:
+            await self.mobster.get_address()
+        except IndexError:
+            await self.mobster.create_account()
+            address = await self.mobster.get_address()
+            b64 = mc_util.b58_wrapper_to_b64_public_address(address)
+            await self.set_profile_auxin("Eventbot", payment_address=b64)
+        await super().start_process()
 
     async def do_get_spec(self, _: Message) -> str:
         return repr(self.spec)
@@ -99,8 +116,12 @@ class FormBot(PayBot):
         user = User(message.source)
         if user not in self.next_states_for_user:
             self.next_states_for_user[user] = list(self.spec)
+        if self.issued_prompt_for_user[user].action == "$":
+            return "Please pay {self.issued_prompt_for_user[user].text}"
         # validate input somehow
-        prompt_used = await self.use_prompt_response(user, message.text or message.payment["receipt"])
+        prompt_used = await self.use_prompt_response(
+            user, message.text or message.payment["receipt"]
+        )
         if prompt_used:
             ack = f"recorded: {'payment' if message.payment else message.text}"
         else:
